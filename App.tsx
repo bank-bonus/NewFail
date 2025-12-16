@@ -42,7 +42,7 @@ const TVFrame: React.FC<{ imageUrl: string; label: string }> = ({ imageUrl, labe
             <div className="absolute inset-0 z-20 pointer-events-none shadow-[inset_0_0_50px_rgba(0,0,0,0.8)]"></div>
         </div>
         <div className="absolute bottom-[-16px] right-6 bg-[#3e2716] text-soviet-gold text-[10px] font-bold px-2 py-1 rounded-b-md border border-t-0 border-white/10 tracking-widest">
-            РУБИН
+            {label}
         </div>
     </div>
 );
