@@ -3,7 +3,7 @@ import { Cartoon } from './types';
 export const CARTOONS: Cartoon[] = [
   { id: "nu_pogodi", imageUrl: "images/nu_pogodi.jpg", ru: { title: "Ну, погоди!", desc: "Легендарная погоня Волка за Зайцем." }, en: { title: "Well, Just You Wait!", desc: "Legendary chase of the Wolf after the Hare." }, tr: { title: "Seni Gidi Seni!", desc: "Kurt'un Tavşan'ı efsanevi kovalamacası." } },
   { id: "vinni_puh", imageUrl: "images/vinni_puh.jpg", ru: { title: "Винни-Пух", desc: "Винни-Пуха озвучивал Евгений Леонов." }, en: { title: "Winnie-the-Pooh", desc: "Soviet version of the famous bear." }, tr: { title: "Winnie-the-Pooh", desc: "Ünlü ayının Sovyet versiyonu." } },
-  { id: "prostokvashino", imageUrl: "images/prostokvashino.jpg", ru: { title: "Простоквашино", desc: "Дядя Фёдор уехал жить с котом и псом." }, en: { title: "Prostokvashino", desc: "A boy lives in a village with a cat and a dog." }, tr: { title: "Prostokvaşino", desc: "Bir çocuk köyde kedi ve köpekle yaşar." } },
+  { id: "prostokvashino", imageUrl: "images/prostokvashino.jpg", ru: { title: "Простоквашино", desc: "Дядя Фёдор уехал жить с котом и псом." }, en: { title: "Prostokvashino", desc: "A boy lives in a village with a cat and a dog." }, tr: { title: "Prostokvaşino", desc: "Bir çocuk köyde kedi ve köпекле yaşar." } },
   { id: "bremenskie", imageUrl: "images/bremenskie.jpg", ru: { title: "Бременские музыканты", desc: "Музыкальная фантазия с элементами рок-н-ролла." }, en: { title: "Bremen Musicians", desc: "Musical fantasy with rock-n-roll elements." }, tr: { title: "Bremen Mızıkacıları", desc: "Rock-n-roll öğeleri içeren müzikal fantezi." } },
   { id: "ezhik", imageUrl: "images/ezhik.jpg", ru: { title: "Ёжик в тумане", desc: "Признан лучшим мультфильмом всех времён." }, en: { title: "Hedgehog in the Fog", desc: "Acclaimed as the best cartoon of all time." }, tr: { title: "Sisteki Kirpi", desc: "Tüm zamanların en iyi çizgi filmi seçildi." } },
   { id: "karlson", imageUrl: "images/karlson.jpg", ru: { title: "Малыш и Карлсон", desc: "История о человеке, который живет на крыше." }, en: { title: "Kid and Karlsson", desc: "Story about a man who lives on the roof." }, tr: { title: "Çocuk ve Karlsson", desc: "Çatıda yaşayan bir adamın hikayesi." } },
@@ -43,7 +43,7 @@ export const CARTOONS: Cartoon[] = [
   { id: "fedora", imageUrl: "images/fedora.jpg", ru: { title: "Федорино горе", desc: "История о сбежавшей посуде." }, en: { title: "Fedora's Misfortune", desc: "The story of runaway dishes." }, tr: { title: "Fedora'nın Talihsizliği", desc: "Kaçan bulaşıkların hikayesi." } },
   { id: "moydodyr", imageUrl: "images/moydodyr.jpg", ru: { title: "Мойдодыр", desc: "Да здравствует мыло душистое!" }, en: { title: "Wash'em'clean", desc: "Long live fragrant soap!" }, tr: { title: "Moydodyr", desc: "Yaşasın kokulu sabun!" } },
   { id: "kot_sapog", imageUrl: "images/kot_sapog.jpg", ru: { title: "Кот в сапогах", desc: "Хитрый кот помогает хозяину." }, en: { title: "Puss in Boots", desc: "Cunning cat helps his master." }, tr: { title: "Çizmeli Kedi", desc: "Kurnaz kedi sahibine yardım ediyor." } },
-  { id: "snezhnaya", imageUrl: "images/snezhnaya.jpg", ru: { title: "Снежная королева", desc: "Зимняя история о чудесах." }, en: { title: "Snow Queen", desc: "A winter story about miracles." }, tr: { title: "Kar Kraliçesi", desc: "Mucizeler hakkında bir kış hikayesi." } },
+  { id: "snezhnaya", imageUrl: "images/snezhnaya.jpg", ru: { title: "Снежная сказка", desc: "Зимняя история о чудесах." }, en: { title: "Snow Tale", desc: "A winter story about miracles." }, tr: { title: "Kar Masalı", desc: "Mucizeler hakkında bir kış hikayesi." } },
   { id: "dyuym", imageUrl: "images/dyuym.jpg", ru: { title: "Дюймовочка", desc: "История маленькой девочки из цветка." }, en: { title: "Thumbelina", desc: "The story of a tiny girl." }, tr: { title: "Parmak Kız", desc: "Minik bir kızın hikayesi." } },
   { id: "zaec", imageUrl: "images/zaec.jpg", ru: { title: "Храбрый заяц", desc: "Как заяц перестал всех бояться." }, en: { title: "The Brave Hare", desc: "How a hare stopped being afraid." }, tr: { title: "Cesur Tavşan", desc: "Bir tavşan nasıl korkmayı bıraktı." } },
   { id: "buratino", imageUrl: "images/buratino.jpg", ru: { title: "Буратино", desc: "Деревянный человечек и золотой ключик." }, en: { title: "Buratino", desc: "The wooden boy and the golden key." }, tr: { title: "Buratino", desc: "Tahta çocuk ve altın anahtar." } },
@@ -65,7 +65,7 @@ export const TRANSLATIONS = {
         your_score: "ВАШ РЕЗУЛЬТАТ", gameover_msg: "Плёнка оборвалась! Но вы можете склеить её.", revive: "ВОСКРЕСНУТЬ (+1 ❤)", ad_hint: "Смотреть рекламу", 
         menu: "В МЕНЮ", resume: "ПРОДОЛЖИТЬ", pause: "ПАУЗА", shop_title: "ЛАВКА", shop_msg: "Новинки скоро!", tv_brand: "РУБИН", 
         bonus: "БОНУС", earn_stars: "ПОЛУЧИТЬ ЗВЕЗДЫ", watch_ad_desc: "Смотри рекламу — получай +5 ⭐", earn: "ПОЛУЧИТЬ",
-        bought_success: "УСПЕШНО КУПЛЕНО!", close: "ЗАКРЫТЬ", purchase_confirm: "ВЫ УВЕРЕНЫ?"
+        bought_success: "УСПЕШНО КУПЛЕНО!", close: "ЗАКРЫТЬ", confirm_purchase: "КУПИТЬ?", yes: "ДА", no: "НЕТ"
     },
     en: { 
         title: "SovietToonQuiz", subtitle: "USSR CARTOONS", start: "PLAY", shop: "SHOP", score: "SCORE", level: "LEVEL", record: "BEST", stars: "STARS", 
@@ -73,14 +73,14 @@ export const TRANSLATIONS = {
         your_score: "YOUR SCORE", gameover_msg: "The film broke! But you can fix it.", revive: "REVIVE (+1 ❤)", ad_hint: "Watch Ad", 
         menu: "MENU", resume: "RESUME", pause: "PAUSED", shop_title: "STORE", shop_msg: "New items coming soon!", tv_brand: "RUBIN",
         bonus: "BONUS", earn_stars: "GET STARS", watch_ad_desc: "Watch ad — get +5 ⭐", earn: "GET",
-        bought_success: "SUCCESSFULLY BOUGHT!", close: "CLOSE", purchase_confirm: "ARE YOU SURE?"
+        bought_success: "SUCCESSFULLY BOUGHT!", close: "CLOSE", confirm_purchase: "BUY?", yes: "YES", no: "NO"
     },
     tr: { 
-        title: "SovyetQuiz", subtitle: "SSCB ÇİZGИ FİLMLERİ", start: "OYNA", shop: "MAĞAZA", score: "PUAN", level: "SEVİYE", record: "REKOR", stars: "YILDIZLAR", 
-        question: "HANGİSИ?", frame_label: "KARE", next: "SONRAKИ", correct: "DOĞRU!", wrong: "YANLIŞ!", gameover: "FİLMİN SONU", 
+        title: "SovyetQuiz", subtitle: "SSCB ÇİZGИ FİLMLERİ", start: "OYNA", shop: "MAĞAZA", score: "PUAN", level: "SEVИYE", record: "REKOR", stars: "YILDIZLAR", 
+        question: "HANGИSИ?", frame_label: "KARE", next: "SONRAKИ", correct: "DOĞRU!", wrong: "YANLIŞ!", gameover: "FИLMИN SONU", 
         your_score: "PUANINIZ", gameover_msg: "Film koptu! Ama tamir edebilirsin.", revive: "CANLAN (+1 ❤)", ad_hint: "Reklam izle", 
         menu: "MENÜ", resume: "DEVAM", pause: "DURAKLATILDI", shop_title: "DÜKKAN", shop_msg: "Yeni ürünler yakında!", tv_brand: "RUBIN",
         bonus: "BONUS", earn_stars: "YILDIZ KAZAN", watch_ad_desc: "Reklam izle — +5 ⭐ kazan", earn: "KAZAN",
-        bought_success: "BAŞARIYLA SATIN ALINDI!", close: "KAPAT", purchase_confirm: "EMİN MİSİNİZ?"
+        bought_success: "BAŞARIYLA SATIN ALINDI!", close: "KAPAT", confirm_purchase: "SATIN AL?", yes: "EVET", no: "HAYIR"
     }
 };
