@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import vkBridge from '@vkontakte/vk-bridge';
 import { CARTOONS, TRANSLATIONS } from './data';
 import { Cartoon, GameState, Language, PlayerStats } from './types';
-import { Play, Home, RefreshCw, ShoppingCart, Heart, Star, Settings, Pause, X, RotateCcw, Clapperboard, Award, Shield, Zap, Tv, Film } from 'lucide-react';
+import { Play, Home, RefreshCw, ShoppingCart, Heart, Star, Settings, Pause, X, RotateCcw, Clapperboard, Award, Shield, Zap, Tv, Film, Trophy, BarChart3 } from 'lucide-react';
 
 // --- Constants ---
 
@@ -17,26 +17,29 @@ const SHOP_ITEMS = [
 const Button: React.FC<{
     children: React.ReactNode;
     onClick?: () => void;
-    variant?: 'primary' | 'secondary' | 'accent' | 'danger';
+    variant?: 'primary' | 'secondary' | 'accent' | 'danger' | 'correct' | 'wrong';
     className?: string;
     disabled?: boolean;
     fullWidth?: boolean;
-}> = ({ children, onClick, variant = 'primary', className = '', disabled = false, fullWidth = false }) => {
-    const baseStyle = "relative font-oswald uppercase tracking-widest font-bold py-2.5 px-4 border-2 border-black transition-all transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none flex items-center justify-center gap-2 z-10 hover:scale-[1.02]";
+    rounded?: boolean;
+}> = ({ children, onClick, variant = 'primary', className = '', disabled = false, fullWidth = false, rounded = false }) => {
+    const baseStyle = `relative font-oswald uppercase tracking-widest font-bold py-3 px-6 transition-all transform active:translate-y-[4px] active:shadow-none flex items-center justify-center gap-3 z-10 ${rounded ? 'rounded-2xl' : 'border-2 border-black'}`;
     
-    const shadowStyle = disabled ? "shadow-none" : "shadow-hard hover:shadow-hard-lg";
+    const shadowStyle = disabled ? "shadow-none" : "shadow-[0_6px_0_0_rgba(0,0,0,0.15)]";
 
     const variants = {
-        primary: "bg-soviet-red text-soviet-cream",
-        secondary: "bg-soviet-cream text-soviet-dark",
+        primary: "bg-soviet-red text-white",
+        secondary: "bg-soviet-gold text-soviet-dark",
         accent: "bg-soviet-green text-white",
-        danger: "bg-gray-800 text-gray-300"
+        danger: "bg-gray-800 text-gray-300",
+        correct: "bg-soviet-green text-white scale-105",
+        wrong: "bg-soviet-red text-white animate-shake"
     };
 
     return (
         <button 
             onClick={disabled ? undefined : onClick}
-            className={`${baseStyle} ${variants[variant]} ${shadowStyle} ${fullWidth ? 'w-full' : ''} ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-300 border-gray-400 grayscale' : ''} ${className}`}
+            className={`${baseStyle} ${variants[variant]} ${shadowStyle} ${fullWidth ? 'w-full' : ''} ${disabled && variant !== 'correct' && variant !== 'wrong' ? 'opacity-50 cursor-not-allowed grayscale' : ''} ${className}`}
         >
             {children}
         </button>
@@ -98,6 +101,7 @@ export default function App() {
     
     const [lastResult, setLastResult] = useState<{correct: boolean, correctItem: Cartoon} | null>(null);
     const [answeredCount, setAnsweredCount] = useState(0);
+    const [selectedId, setSelectedId] = useState<string | null>(null);
 
     const T = TRANSLATIONS[lang];
 
@@ -167,6 +171,7 @@ export default function App() {
         setLevel(1);
         setStars(0);
         setAnsweredCount(0);
+        setSelectedId(null);
         const initialUsed = new Set<string>();
         setUsedQuestionIds(initialUsed);
         setGameState('playing');
@@ -174,6 +179,7 @@ export default function App() {
     };
 
     const nextQuestion = (used: Set<string>) => {
+        setSelectedId(null);
         let available = CARTOONS.filter(c => !used.has(c.id));
         if (available.length === 0) {
             used.clear();
@@ -191,27 +197,33 @@ export default function App() {
     };
 
     const handleAnswer = (selected: Cartoon) => {
-        if (!currentQuestion) return;
+        if (!currentQuestion || selectedId) return;
+        
+        setSelectedId(selected.id);
         const isCorrect = selected.id === currentQuestion.id;
-        if (!isCorrect) {
-            setIsWrong(true);
-            setTimeout(() => setIsWrong(false), 500);
-            setLives(l => l - 1);
-        } else {
-            setScore(s => s + 100);
-            const newAnswered = answeredCount + 1;
-            setAnsweredCount(newAnswered);
-            if (newAnswered % 3 === 0) {
-                const newLevel = Math.floor(newAnswered / 3) + 1;
-                setLevel(newLevel);
-                setStars(s => s + 1);
-                if (newLevel === 2) setMaxLives(2);
-                if (newLevel >= 3) setMaxLives(1);
-                setLives(l => Math.min(l, (newLevel === 2 ? 2 : (newLevel >= 3 ? 1 : 3))));
+        
+        // Wait for 1 second before showing the result screen
+        setTimeout(() => {
+            if (!isCorrect) {
+                setIsWrong(true);
+                setTimeout(() => setIsWrong(false), 500);
+                setLives(l => l - 1);
+            } else {
+                setScore(s => s + 100);
+                const newAnswered = answeredCount + 1;
+                setAnsweredCount(newAnswered);
+                if (newAnswered % 3 === 0) {
+                    const newLevel = Math.floor(newAnswered / 3) + 1;
+                    setLevel(newLevel);
+                    setStars(s => s + 1);
+                    if (newLevel === 2) setMaxLives(2);
+                    if (newLevel >= 3) setMaxLives(1);
+                    setLives(l => Math.min(l, (newLevel === 2 ? 2 : (newLevel >= 3 ? 1 : 3))));
+                }
             }
-        }
-        setLastResult({ correct: isCorrect, correctItem: currentQuestion });
-        setGameState('result');
+            setLastResult({ correct: isCorrect, correctItem: currentQuestion });
+            setGameState('result');
+        }, 1000);
     };
 
     const handleNextResult = () => {
@@ -243,54 +255,89 @@ export default function App() {
 
     if (gameState === 'menu') {
         return (
-            <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 relative overflow-hidden paper-texture">
-                {/* Visual Elements: Film Strips */}
-                <div className="absolute top-0 bottom-0 left-0 w-8 sm:w-12 bg-black flex flex-col items-center py-4 space-y-6 opacity-80 z-0">
-                    {[...Array(12)].map((_, i) => <div key={i} className="w-full h-8 bg-white/5 rounded-sm"></div>)}
-                </div>
-                <div className="absolute top-0 bottom-0 right-0 w-8 sm:w-12 bg-black flex flex-col items-center py-4 space-y-6 opacity-80 z-0">
-                    {[...Array(12)].map((_, i) => <div key={i} className="w-full h-8 bg-white/5 rounded-sm"></div>)}
-                </div>
-
-                <div className="max-w-md w-full bg-soviet-cream border-4 border-black p-6 sm:p-8 shadow-hard-lg rounded-sm z-10 text-center relative rotate-1 animate-slide-up">
-                    {/* Decorative Star/Stamp */}
-                    <div className="absolute -top-6 -left-6 w-20 h-20 bg-soviet-red text-white flex items-center justify-center rounded-full border-4 border-black rotate-[-15deg] shadow-hard opacity-90">
-                        <Star size={40} fill="currentColor" strokeWidth={2} className="text-black" />
-                    </div>
-
-                    <div className="mb-6 relative">
-                         {/* Retro Border for Title */}
-                         <div className="border-4 border-double border-soviet-red p-4 bg-white/40 shadow-inner">
-                            <h1 className="font-ruslan text-4xl sm:text-5xl text-soviet-red drop-shadow-[3px_3px_0_#000] leading-none mb-2">
-                                {T.title.toUpperCase()}
-                            </h1>
-                            <div className="inline-flex items-center gap-2 bg-soviet-dark text-soviet-gold px-4 py-1 border-2 border-black shadow-hard-sm">
-                                <p className="font-oswald font-bold tracking-[0.2em] text-[10px] uppercase whitespace-nowrap">{T.subtitle}</p>
-                            </div>
-                         </div>
-                    </div>
+            <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 relative overflow-hidden">
+                {/* Main Menu Card */}
+                <div className="max-w-md w-full bg-white border-[6px] border-soviet-dark rounded-[40px] shadow-menu-card relative overflow-hidden flex flex-col items-center p-8 animate-slide-up">
                     
-                    <div className="grid grid-cols-2 gap-3 mb-8">
-                         <div className="bg-white border-2 border-black p-2 shadow-hard-sm transform -rotate-1">
-                             <span className="block text-[10px] uppercase text-gray-500 font-bold">{T.record}</span>
-                             <span className="text-xl font-bold">{stats.highScore}</span>
-                         </div>
-                         <div className="bg-white border-2 border-black p-2 shadow-hard-sm transform rotate-1">
-                             <span className="block text-[10px] uppercase text-gray-500 font-bold">{T.stars}</span>
-                             <span className="text-xl font-bold flex items-center justify-center gap-1 text-soviet-gold drop-shadow-sm">
-                                {stats.totalStars} <Star size={18} fill="currentColor" strokeWidth={2} className="text-black" />
-                             </span>
-                         </div>
+                    {/* Top Red Bar Decoration */}
+                    <div className="absolute top-0 inset-x-0 h-4 bg-soviet-red"></div>
+
+                    {/* Logo Area */}
+                    <div className="mt-6 mb-8 text-center relative w-full flex flex-col items-center">
+                        <div className="absolute top-2 left-2 opacity-10 -rotate-12">
+                            <Film size={48} className="text-soviet-red" />
+                        </div>
+                        <div className="absolute bottom-2 right-2 opacity-10 rotate-12">
+                            <Film size={48} className="text-soviet-red" />
+                        </div>
+
+                        <div className="font-ruslan text-[44px] sm:text-[56px] leading-[0.85] text-soviet-red flex flex-col items-center drop-shadow-sm uppercase">
+                            <span>СОЮЗ</span>
+                            <span className="relative z-10">МУЛЬТ</span>
+                            <span>КВИЗ</span>
+                        </div>
                     </div>
 
-                    <div className="space-y-4">
-                        <Button fullWidth onClick={startGame} className="py-4 text-xl">
-                            <Play size={24} strokeWidth={3} fill="currentColor" /> {T.start}
+                    {/* Subtitle Divider */}
+                    <div className="w-full flex items-center justify-center gap-3 mb-8 opacity-70">
+                         <div className="h-[1px] bg-gray-300 flex-1"></div>
+                         <div className="flex items-center gap-2">
+                            <Tv size={14} className="text-soviet-dark" />
+                            <span className="font-oswald font-bold text-xs sm:text-sm text-soviet-dark tracking-[0.15em] uppercase whitespace-nowrap">
+                                {T.subtitle}
+                            </span>
+                            <Tv size={14} className="text-soviet-dark" />
+                         </div>
+                         <div className="h-[1px] bg-gray-300 flex-1"></div>
+                    </div>
+
+                    {/* Stats Section */}
+                    <div className="flex gap-4 mb-8 w-full justify-center">
+                        {/* Record Box */}
+                        <div className="bg-[#fdf3cc] border-2 border-[#e6d8a2] rounded-[20px] px-5 py-3 flex flex-col items-center relative flex-1">
+                             <div className="flex items-center gap-2">
+                                 <Trophy size={20} className="text-[#d4af37]" />
+                                 <div className="flex flex-col items-start leading-tight">
+                                    <span className="text-[9px] font-bold text-[#b09647] uppercase tracking-widest">{T.record}</span>
+                                    <span className="text-xl font-bold text-soviet-dark">{stats.highScore}</span>
+                                 </div>
+                             </div>
+                        </div>
+                        {/* Stars Box */}
+                        <div className="bg-[#fdf3cc] border-2 border-[#e6d8a2] rounded-[20px] px-5 py-3 flex flex-col items-center relative flex-1">
+                             <div className="flex items-center gap-2">
+                                 <Star size={20} className="text-soviet-gold" fill="currentColor" />
+                                 <div className="flex flex-col items-start leading-tight">
+                                    <span className="text-[9px] font-bold text-[#b09647] uppercase tracking-widest">{T.stars}</span>
+                                    <span className="text-xl font-bold text-soviet-dark">{stats.totalStars}</span>
+                                 </div>
+                             </div>
+                        </div>
+                    </div>
+
+                    {/* Buttons Stack */}
+                    <div className="w-full space-y-4 px-2">
+                        <Button 
+                            fullWidth 
+                            rounded 
+                            onClick={startGame} 
+                            className="py-5 text-xl sm:text-2xl tracking-[0.1em]"
+                        >
+                            <Play size={24} fill="currentColor" /> {T.start}
                         </Button>
-                        <Button fullWidth variant="secondary" onClick={() => setGameState('shop')}>
-                            <ShoppingCart size={24} strokeWidth={2} /> {T.shop}
+                        
+                        <Button 
+                            fullWidth 
+                            rounded 
+                            variant="secondary" 
+                            onClick={() => setGameState('shop')}
+                            className="py-5 text-lg sm:text-xl tracking-[0.1em] border-none"
+                        >
+                            <ShoppingCart size={24} /> {T.shop}
                         </Button>
                     </div>
+
+                    <div className="absolute bottom-0 inset-x-0 h-2 bg-soviet-red opacity-80"></div>
                 </div>
             </div>
         );
@@ -299,23 +346,25 @@ export default function App() {
     if (gameState === 'shop') {
         return (
             <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 font-oswald paper-texture overflow-x-hidden">
-                <div className="max-w-md w-full bg-soviet-cream border-4 border-black p-6 shadow-hard-lg relative animate-slide-up">
-                     <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-soviet-red text-soviet-cream px-8 py-2 border-2 border-black shadow-hard font-bold tracking-widest -rotate-1 text-xl">
+                <div className="max-w-md w-full bg-white border-4 border-soviet-dark p-6 rounded-[32px] shadow-hard-lg relative animate-slide-up">
+                     <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-soviet-red text-soviet-cream px-8 py-2 border-2 border-black shadow-hard font-bold tracking-widest -rotate-1 text-xl rounded-full">
                         {T.shop_title}
                     </div>
 
-                    <div className="mt-8 flex justify-between items-center mb-6 border-b-2 border-dashed border-black/30 pb-4">
+                    <div className="mt-8 flex justify-between items-center mb-6 border-b-2 border-dashed border-black/10 pb-4">
                         <span className="font-ruslan text-2xl text-soviet-dark">{T.stars}</span>
-                        <span className="font-bold text-xl bg-soviet-gold border-2 border-black px-4 py-1.5 flex items-center gap-2 shadow-hard-sm animate-wobble">
+                        <span className="font-bold text-xl bg-soviet-gold border-2 border-black px-4 py-1.5 flex items-center gap-2 shadow-hard-sm animate-wobble rounded-full">
                              {stats.totalStars} <Star size={20} fill="black" />
                         </span>
                     </div>
 
                     {/* Bonus Block: Watch Ad */}
-                    <div className="bg-white border-2 border-black p-4 mb-4 shadow-hard-sm relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 bg-soviet-red text-white text-[9px] px-2 py-0.5 font-bold uppercase rotate-12 translate-x-3 translate-y-1">{T.bonus}</div>
+                    <div className="bg-[#f0f9ff] border-2 border-blue-200 p-4 mb-4 shadow-hard-sm relative overflow-visible group rounded-2xl">
+                        <div className="absolute -top-2 -right-2 bg-soviet-red text-white text-[10px] px-3 py-1 font-bold uppercase rotate-12 shadow-sm rounded-lg border border-black/10 z-20 whitespace-nowrap">
+                            {T.bonus}
+                        </div>
                         <div className="flex items-center gap-4">
-                            <div className="p-2 bg-soviet-gold border-2 border-black rounded-sm shadow-hard-sm group-hover:scale-110 transition-transform">
+                            <div className="p-2 bg-soviet-gold border-2 border-black rounded-xl shadow-hard-sm group-hover:scale-110 transition-transform">
                                 <Film size={24} className="text-black" />
                             </div>
                             <div className="flex-1 text-left">
@@ -324,7 +373,7 @@ export default function App() {
                             </div>
                             <button 
                                 onClick={handleEarnStarsAd}
-                                className="px-3 py-1.5 bg-soviet-green text-white border-2 border-black font-bold text-xs shadow-hard-sm active:translate-y-0.5 active:shadow-none"
+                                className="px-3 py-1.5 bg-soviet-green text-white border-2 border-black font-bold text-xs shadow-hard-sm active:translate-y-0.5 active:shadow-none rounded-lg"
                             >
                                 {T.earn}
                             </button>
@@ -333,8 +382,8 @@ export default function App() {
                     
                     <div className="space-y-3 mb-6 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
                         {SHOP_ITEMS.map(item => (
-                            <div key={item.id} className="flex items-center gap-4 bg-white border-2 border-black p-3 shadow-hard-sm hover:translate-x-1 transition-transform">
-                                <div className="p-2.5 bg-soviet-cream border-2 border-black">
+                            <div key={item.id} className="flex items-center gap-4 bg-[#f8f8f8] border-2 border-black/5 p-3 rounded-2xl shadow-sm hover:translate-x-1 transition-transform">
+                                <div className="p-2.5 bg-soviet-cream border-2 border-black rounded-xl">
                                     <item.icon size={22} className="text-soviet-red" />
                                 </div>
                                 <div className="flex-1 text-left">
@@ -343,7 +392,7 @@ export default function App() {
                                 </div>
                                 <button 
                                     disabled={stats.totalStars < item.price}
-                                    className={`px-3 py-1.5 border-2 border-black font-bold text-xs shadow-hard-sm active:shadow-none active:translate-y-0.5 ${stats.totalStars >= item.price ? 'bg-soviet-gold hover:bg-yellow-400' : 'bg-gray-200 opacity-50 cursor-not-allowed'}`}
+                                    className={`px-3 py-1.5 border-2 border-black font-bold text-xs shadow-hard-sm active:shadow-none active:translate-y-0.5 rounded-lg ${stats.totalStars >= item.price ? 'bg-soviet-gold hover:bg-yellow-400' : 'bg-gray-200 opacity-50 cursor-not-allowed'}`}
                                 >
                                     {item.price} ⭐
                                 </button>
@@ -351,7 +400,7 @@ export default function App() {
                         ))}
                     </div>
 
-                    <Button fullWidth variant="secondary" onClick={() => setGameState('menu')}>
+                    <Button fullWidth variant="secondary" onClick={() => setGameState('menu')} rounded>
                         <Home size={20} /> {T.menu}
                     </Button>
                 </div>
@@ -362,22 +411,22 @@ export default function App() {
     if (gameState === 'gameover') {
         return (
             <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-dark/95 font-oswald relative overflow-hidden">
-                 <div className="max-w-md w-full bg-white border-4 border-black p-6 shadow-2xl relative rotate-1 animate-slide-up">
+                 <div className="max-w-md w-full bg-white border-4 border-black p-6 shadow-2xl relative rotate-1 animate-slide-up rounded-[40px]">
                     <h2 className="font-ruslan text-5xl mb-6 text-center text-soviet-dark drop-shadow-md">{T.gameover}</h2>
-                    <div className="bg-soviet-cream border-2 border-black p-4 mb-6 text-center shadow-hard-sm">
+                    <div className="bg-soviet-cream border-2 border-black p-4 mb-6 text-center shadow-hard-sm rounded-3xl">
                         <p className="text-[9px] uppercase tracking-[0.3em] text-gray-500 font-bold mb-1">{T.your_score}</p>
                         <p className="text-5xl font-bold text-soviet-red drop-shadow-[2px_2px_0_rgba(0,0,0,0.1)]">{score}</p>
-                        <div className="mt-3 flex justify-center items-center gap-2 font-bold bg-soviet-gold px-3 py-1 border-2 border-black shadow-hard-sm inline-flex">
+                        <div className="mt-3 flex justify-center items-center gap-2 font-bold bg-soviet-gold px-3 py-1 border-2 border-black shadow-hard-sm inline-flex rounded-full">
                              <span>+{stars}</span> <Star size={16} fill="black" />
                         </div>
                     </div>
                     <p className="text-center mb-6 italic font-serif text-gray-600 leading-relaxed px-4 text-sm">{T.gameover_msg}</p>
                     <div className="space-y-4">
-                        <Button fullWidth variant="accent" onClick={handleRevive} className="py-4 text-lg">
+                        <Button fullWidth rounded onClick={handleRevive} className="py-4 text-lg">
                              <Play size={24} fill="currentColor" /> {T.revive}
                              <span className="text-[9px] bg-black/10 px-1 rounded ml-1 font-normal opacity-70 tracking-tighter uppercase">AD</span>
                         </Button>
-                        <Button fullWidth variant="secondary" onClick={goMenu}>
+                        <Button fullWidth rounded variant="secondary" onClick={goMenu}>
                             <Home size={20} /> {T.menu}
                         </Button>
                     </div>
@@ -389,11 +438,11 @@ export default function App() {
     if (gameState === 'result' && lastResult) {
         return (
             <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-cream paper-texture font-oswald overflow-hidden">
-                <div className={`max-w-md w-full bg-white border-4 border-black p-5 shadow-hard-lg relative animate-slide-up ${isWrong ? 'animate-shake' : ''}`}>
-                    <div className={`absolute -top-5 left-1/2 -translate-x-1/2 px-8 py-1.5 border-2 border-black font-ruslan text-2xl shadow-hard ${lastResult.correct ? 'bg-soviet-green text-white rotate-1' : 'bg-soviet-red text-white -rotate-1'}`}>
+                <div className={`max-w-md w-full bg-white border-4 border-black p-5 shadow-hard-lg relative animate-slide-up rounded-[32px] ${isWrong ? 'animate-shake' : ''}`}>
+                    <div className={`absolute -top-5 left-1/2 -translate-x-1/2 px-8 py-1.5 border-2 border-black font-ruslan text-2xl shadow-hard rounded-full ${lastResult.correct ? 'bg-soviet-green text-white rotate-1' : 'bg-soviet-red text-white -rotate-1'}`}>
                         {lastResult.correct ? T.correct : T.wrong}
                     </div>
-                    <div className="mt-8 border-4 border-black bg-black rounded-sm overflow-hidden relative aspect-video shadow-inner-hard mb-4">
+                    <div className="mt-8 border-4 border-black bg-black rounded-[24px] overflow-hidden relative aspect-video shadow-inner-hard mb-4">
                         <img src={lastResult.correctItem.imageUrl} className="w-full h-full object-contain" />
                         <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-red-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-widest animate-pulse">
                             <div className="w-1 h-1 bg-white rounded-full"></div> REC
@@ -407,7 +456,7 @@ export default function App() {
                              </p>
                         </div>
                     </div>
-                    <Button fullWidth onClick={handleNextResult} className="py-3">
+                    <Button fullWidth rounded onClick={handleNextResult} className="py-3">
                         {T.next} <Clapperboard size={18} />
                     </Button>
                 </div>
@@ -421,7 +470,7 @@ export default function App() {
             <div className="bg-soviet-red border-b-4 border-black p-2.5 pt-safe-top z-50 sticky top-0 shadow-hard w-full">
                 <div className="max-w-lg mx-auto flex justify-between items-end gap-2 px-1">
                     {/* Score Ticket */}
-                    <div className="bg-soviet-cream border-2 border-black px-2.5 py-1 shadow-hard-sm transform -rotate-1 min-w-[65px]">
+                    <div className="bg-soviet-cream border-2 border-black px-2.5 py-1 shadow-hard-sm transform -rotate-1 min-w-[65px] rounded-lg">
                         <span className="block text-[8px] font-bold text-soviet-dark leading-none tracking-widest uppercase mb-0.5">{T.score}</span>
                         <span className="block text-xl font-bold text-soviet-red leading-none">{score}</span>
                     </div>
@@ -429,10 +478,10 @@ export default function App() {
                          {/* Level Badge */}
                          <div className="flex flex-col items-center">
                              <div className="bg-soviet-dark text-soviet-gold text-[8px] px-1.5 rounded-t font-bold tracking-wider border-x-2 border-t-2 border-black/50 uppercase">{T.level}</div>
-                             <div className="bg-soviet-gold text-soviet-dark font-bold text-xl px-3.5 border-2 border-black shadow-hard-sm leading-none py-1.5">{level}</div>
+                             <div className="bg-soviet-gold text-soviet-dark font-bold text-xl px-3.5 border-2 border-black shadow-hard-sm leading-none py-1.5 rounded-b-lg">{level}</div>
                         </div>
                         {/* Lives */}
-                        <div className="flex gap-1 bg-black/15 p-1.5 rounded-lg border-2 border-black/20 shadow-inner">
+                        <div className="flex gap-1 bg-black/15 p-1.5 rounded-xl border-2 border-black/20 shadow-inner">
                              {[...Array(maxLives)].map((_, i) => (
                                  <Heart key={i} size={20} 
                                     fill={i < lives ? "#D92B2B" : "transparent"}
@@ -458,29 +507,41 @@ export default function App() {
                          </div>
 
                          <div className="relative transform -rotate-1 max-w-fit mx-auto scale-90">
-                             <div className="absolute inset-0 bg-black translate-x-1 translate-y-1"></div>
-                             <div className="relative bg-white border-2 border-black px-6 py-2">
+                             <div className="absolute inset-0 bg-black translate-x-1 translate-y-1 rounded-lg"></div>
+                             <div className="relative bg-white border-2 border-black px-6 py-2 rounded-lg">
                                  <span className="font-bold tracking-[0.2em] text-soviet-dark text-sm block text-center uppercase whitespace-nowrap">{T.question}</span>
                              </div>
                          </div>
 
-                         {/* ANSWER GRID: Forced 2x2 with smaller padding/text to prevent scrolling */}
+                         {/* ANSWER GRID */}
                          <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full pb-6">
-                             {options.map((opt, idx) => (
-                                 <Button 
-                                    key={opt.id} 
-                                    variant="secondary" 
-                                    className="min-h-[60px] sm:min-h-[72px] text-[10px] sm:text-xs leading-tight normal-case text-left pl-3 sm:pl-6 flex justify-start items-center border-2 border-black shadow-hard active:shadow-none"
-                                    onClick={() => handleAnswer(opt)}
-                                 >
-                                     <span className="font-bold text-soviet-red mr-1.5 sm:mr-3 text-lg sm:text-xl opacity-80 font-ruslan">
-                                         {idx + 1}.
-                                     </span>
-                                     <span className="font-oswald font-bold uppercase tracking-tight line-clamp-2">
-                                         {opt[lang].title}
-                                     </span>
-                                 </Button>
-                             ))}
+                             {options.map((opt, idx) => {
+                                 const isSelected = selectedId === opt.id;
+                                 const isCorrect = opt.id === currentQuestion.id;
+                                 
+                                 let variant: any = "secondary";
+                                 if (isSelected) {
+                                     variant = isCorrect ? "correct" : "wrong";
+                                 }
+
+                                 return (
+                                     <Button 
+                                        key={opt.id} 
+                                        rounded
+                                        variant={variant}
+                                        disabled={!!selectedId}
+                                        className={`min-h-[60px] sm:min-h-[72px] text-[10px] sm:text-xs leading-tight normal-case text-left pl-3 sm:pl-6 flex justify-start items-center border-none ${!selectedId ? 'hover:scale-[1.02]' : ''}`}
+                                        onClick={() => handleAnswer(opt)}
+                                     >
+                                         <span className={`font-bold mr-1.5 sm:mr-3 text-lg sm:text-xl font-ruslan ${isSelected ? 'text-white' : 'text-soviet-red opacity-80'}`}>
+                                             {idx + 1}.
+                                         </span>
+                                         <span className="font-oswald font-bold uppercase tracking-tight line-clamp-2">
+                                             {opt[lang].title}
+                                         </span>
+                                     </Button>
+                                 );
+                             })}
                          </div>
                     </div>
                 )}
@@ -489,15 +550,15 @@ export default function App() {
             {/* Pause Modal */}
             {gameState === 'paused' && (
                 <div className="fixed inset-0 bg-soviet-dark/90 z-[100] flex items-center justify-center p-4">
-                    <div className="bg-soviet-cream p-8 border-4 border-black w-full max-w-xs shadow-hard-lg text-center relative rotate-1">
-                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-soviet-red text-white px-8 py-2 font-ruslan tracking-widest text-2xl border-2 border-black shadow-hard-sm -rotate-2">
+                    <div className="bg-soviet-cream p-8 border-4 border-black w-full max-w-xs shadow-hard-lg text-center relative rotate-1 rounded-[32px]">
+                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-soviet-red text-white px-8 py-2 font-ruslan tracking-widest text-2xl border-2 border-black shadow-hard-sm -rotate-2 rounded-full">
                             {T.pause}
                         </div>
                         <div className="space-y-4 mt-6">
-                            <Button fullWidth onClick={togglePause} variant="primary" className="py-4">
+                            <Button fullWidth rounded onClick={togglePause} variant="primary" className="py-4">
                                 <Play size={24} fill="currentColor" /> {T.resume}
                             </Button>
-                            <Button fullWidth onClick={goMenu} variant="secondary">
+                            <Button fullWidth rounded onClick={goMenu} variant="secondary">
                                 <Home size={20} /> {T.menu}
                             </Button>
                         </div>

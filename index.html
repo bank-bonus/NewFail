@@ -20,17 +20,15 @@
                     },
                     colors: {
                         'soviet-red': '#D92B2B',
-                        'soviet-dark': '#222222',
+                        'soviet-dark': '#3e2723', // Dark brown like the border in screenshot
                         'soviet-gold': '#F4C430',
                         'soviet-cream': '#F9F4E0',
                         'soviet-green': '#4A855F',
                         'soviet-accent': '#E85F5C',
                     },
                     boxShadow: {
-                        'hard': '4px 4px 0px 0px #1a1a1a',
-                        'hard-sm': '2px 2px 0px 0px #1a1a1a',
-                        'hard-lg': '8px 8px 0px 0px #1a1a1a',
-                        'inner-hard': 'inset 0 0 20px rgba(0,0,0,0.5)',
+                        'hard': '0px 4px 0px 0px rgba(0,0,0,0.2)',
+                        'menu-card': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
                     },
                     animation: {
                         'float': 'float 3s ease-in-out infinite',
@@ -66,12 +64,9 @@
     <style>
         body {
             overscroll-behavior: none;
-            background-color: #F9F4E0;
-            background-image: 
-                radial-gradient(#D92B2B 0.5px, transparent 0.5px), 
-                radial-gradient(#D92B2B 0.5px, #F9F4E0 0.5px);
-            background-size: 20px 20px;
-            background-position: 0 0, 10px 10px;
+            background-color: #f1ede4;
+            background-image: radial-gradient(#d1ccc0 1.5px, transparent 1.5px);
+            background-size: 18px 18px;
             -webkit-user-select: none;
             user-select: none;
             overflow-x: hidden;
@@ -82,10 +77,10 @@
             content: "";
             position: absolute;
             inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
             pointer-events: none;
             z-index: 5;
-            opacity: 0.6;
+            opacity: 0.5;
         }
 
         .scanlines {
@@ -106,7 +101,6 @@
             background-size: 10px 100%;
         }
 
-        /* Prevent all horizontal scrolls */
         #root {
             width: 100%;
             overflow-x: hidden;
