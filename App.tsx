@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import vkBridge from '@vkontakte/vk-bridge';
 import { CARTOONS, TRANSLATIONS } from './data';
 import { Cartoon, GameState, Language, PlayerStats } from './types';
-import { Play, Home, RefreshCw, ShoppingCart, Heart, Star, Settings, Pause, X, RotateCcw, Clapperboard, Award, Shield, Zap, Tv, Film, Trophy, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Play, Home, RefreshCw, ShoppingCart, Heart, Star, Settings, Pause, X, RotateCcw, Clapperboard, Award, Shield, Zap, Tv, Film, Trophy, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 
 // --- Constants ---
 
@@ -95,6 +95,7 @@ export default function App() {
     
     const [stats, setStats] = useState<PlayerStats>({ highScore: 0, totalStars: 0 });
     const [purchaseModal, setPurchaseModal] = useState<{item: any, success: boolean} | null>(null);
+    const [toast, setToast] = useState<string | null>(null);
 
     const [currentQuestion, setCurrentQuestion] = useState<Cartoon | null>(null);
     const [options, setOptions] = useState<Cartoon[]>([]);
@@ -105,6 +106,12 @@ export default function App() {
     const [selectedId, setSelectedId] = useState<string | null>(null);
 
     const T = TRANSLATIONS[lang];
+
+    // Helper to show custom toast
+    const showToast = (msg: string) => {
+        setToast(msg);
+        setTimeout(() => setToast(null), 3000);
+    };
 
     // Initialize VK & Load Data
     useEffect(() => {
@@ -141,9 +148,11 @@ export default function App() {
     useEffect(() => {
         const showBannerStates: GameState[] = ['menu', 'shop', 'gameover'];
         if (showBannerStates.includes(gameState)) {
-            vkBridge.send('VKWebAppShowBannerAd', { banner_location: 'bottom' }).catch(console.error);
+            vkBridge.send('VKWebAppShowBannerAd', { banner_location: 'bottom' }).catch(e => {
+                console.log("Banner not supported or failed:", e);
+            });
         } else {
-            vkBridge.send('VKWebAppHideBannerAd').catch(console.error);
+            vkBridge.send('VKWebAppHideBannerAd').catch(() => {});
         }
     }, [gameState]);
 
@@ -165,22 +174,28 @@ export default function App() {
         updateStorage(newStats.highScore, newStats.totalStars);
     };
 
-    // --- NEW AD HANDLER HELPER ---
+    // --- REWARDED ADS HANDLER (User Requested Logic) ---
     const handleAdsWithReward = async (successCallback: () => void) => {
         try {
-            // Check if ads are supported/ready
+            // 1. Проверяем, поддерживается ли реклама в принципе
             const check = await vkBridge.send('VKWebAppCheckNativeAds', { ad_format: 'reward' });
             
             if (check.result) {
+                // 2. Показываем рекламу
                 const data = await vkBridge.send("VKWebAppShowRewardedVideo", { type: 'reward' });
+                
                 if (data.result) {
+                    // 3. Выполняем логику только при успешном просмотре
                     successCallback();
                 }
             } else {
                 console.log("Реклама не готова или недоступна");
+                showToast(T.ad_not_ready);
             }
         } catch (e) {
             console.error("Ошибка рекламы:", e);
+            // Часто ошибка падает, если пользователь закрыл рекламу до завершения
+            // Но мы всё равно можем уведомить, если это системный сбой
         }
     };
 
@@ -261,7 +276,6 @@ export default function App() {
         setSelectedId(selected.id);
         const isCorrect = selected.id === currentQuestion.id;
         
-        // Wait for 1 second before showing the result screen
         setTimeout(() => {
             if (!isCorrect) {
                 setIsWrong(true);
@@ -298,40 +312,41 @@ export default function App() {
     const togglePause = () => setGameState(curr => curr === 'playing' ? 'paused' : 'playing');
     const goMenu = () => { if (score > 0) saveStats(score, stars); setGameState('menu'); };
 
+    // --- Components ---
+
+    const Toast = () => toast && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[500] animate-slide-up">
+            <div className="bg-gray-900/90 text-white px-6 py-3 rounded-full border border-white/20 shadow-xl flex items-center gap-3">
+                <Info size={18} className="text-soviet-gold" />
+                <span className="font-oswald text-xs uppercase tracking-tight">{toast}</span>
+            </div>
+        </div>
+    );
+
     // --- Screens ---
 
     if (gameState === 'menu') {
         return (
             <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 relative overflow-hidden pb-24">
+                <Toast />
                 <div className="max-w-md w-full bg-white border-[6px] border-soviet-dark rounded-[40px] shadow-menu-card relative overflow-hidden flex flex-col items-center p-8 animate-slide-up">
                     <div className="absolute top-0 inset-x-0 h-4 bg-soviet-red"></div>
                     <div className="mt-6 mb-8 text-center relative w-full flex flex-col items-center">
-                        <div className="absolute top-2 left-2 opacity-10 -rotate-12">
-                            <Film size={48} className="text-soviet-red" />
-                        </div>
-                        <div className="absolute bottom-2 right-2 opacity-10 rotate-12">
-                            <Film size={48} className="text-soviet-red" />
-                        </div>
-
+                        <div className="absolute top-2 left-2 opacity-10 -rotate-12"><Film size={48} className="text-soviet-red" /></div>
+                        <div className="absolute bottom-2 right-2 opacity-10 rotate-12"><Film size={48} className="text-soviet-red" /></div>
                         <div className="font-ruslan text-[44px] sm:text-[56px] leading-[0.85] text-soviet-red flex flex-col items-center drop-shadow-sm uppercase">
-                            <span>СОЮЗ</span>
-                            <span className="relative z-10">МУЛЬТ</span>
-                            <span>КВИЗ</span>
+                            <span>СОЮЗ</span><span className="relative z-10">МУЛЬТ</span><span>КВИЗ</span>
                         </div>
                     </div>
-
                     <div className="w-full flex items-center justify-center gap-3 mb-8 opacity-70">
                          <div className="h-[1px] bg-gray-300 flex-1"></div>
                          <div className="flex items-center gap-2">
                             <Tv size={14} className="text-soviet-dark" />
-                            <span className="font-oswald font-bold text-xs sm:text-sm text-soviet-dark tracking-[0.15em] uppercase whitespace-nowrap">
-                                {T.subtitle}
-                            </span>
+                            <span className="font-oswald font-bold text-xs sm:text-sm text-soviet-dark tracking-[0.15em] uppercase whitespace-nowrap">{T.subtitle}</span>
                             <Tv size={14} className="text-soviet-dark" />
                          </div>
                          <div className="h-[1px] bg-gray-300 flex-1"></div>
                     </div>
-
                     <div className="flex gap-4 mb-8 w-full justify-center">
                         <div className="bg-[#fdf3cc] border-2 border-[#e6d8a2] rounded-[20px] px-4 py-3 flex flex-col items-center relative flex-1">
                              <div className="flex items-center gap-2">
@@ -352,28 +367,10 @@ export default function App() {
                              </div>
                         </div>
                     </div>
-
                     <div className="w-full space-y-4 px-2">
-                        <Button 
-                            fullWidth 
-                            rounded 
-                            onClick={startGame} 
-                            className="py-5 text-xl sm:text-2xl tracking-[0.1em]"
-                        >
-                            <Play size={24} fill="currentColor" /> {T.start}
-                        </Button>
-                        
-                        <Button 
-                            fullWidth 
-                            rounded 
-                            variant="secondary" 
-                            onClick={() => setGameState('shop')}
-                            className="py-5 text-lg sm:text-xl tracking-[0.1em] border-none"
-                        >
-                            <ShoppingCart size={24} /> {T.shop}
-                        </Button>
+                        <Button fullWidth rounded onClick={startGame} className="py-5 text-xl sm:text-2xl tracking-[0.1em]"><Play size={24} fill="currentColor" /> {T.start}</Button>
+                        <Button fullWidth rounded variant="secondary" onClick={() => setGameState('shop')} className="py-5 text-lg sm:text-xl tracking-[0.1em] border-none"><ShoppingCart size={24} /> {T.shop}</Button>
                     </div>
-
                     <div className="absolute bottom-0 inset-x-0 h-2 bg-soviet-red opacity-80"></div>
                 </div>
             </div>
@@ -383,6 +380,7 @@ export default function App() {
     if (gameState === 'shop') {
         return (
             <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 font-oswald paper-texture overflow-x-hidden pb-24">
+                <Toast />
                 {purchaseModal && (
                     <div className="fixed inset-0 z-[100] bg-soviet-dark/80 backdrop-blur-sm flex items-center justify-center p-6">
                         <div className="bg-white border-4 border-black p-6 rounded-[32px] shadow-hard-lg max-w-xs w-full text-center animate-slide-up relative">
@@ -395,9 +393,7 @@ export default function App() {
                                         <h3 className="text-xl font-bold uppercase">{T.bought_success}</h3>
                                         <p className="text-sm font-bold text-soviet-dark">{purchaseModal.item.name[lang]}</p>
                                     </div>
-                                    <Button fullWidth rounded onClick={() => setPurchaseModal(null)} variant="accent">
-                                        {T.close}
-                                    </Button>
+                                    <Button fullWidth rounded onClick={() => setPurchaseModal(null)} variant="accent">{T.close}</Button>
                                 </>
                              ) : (
                                 <>
@@ -407,17 +403,11 @@ export default function App() {
                                             <purchaseModal.item.icon size={24} className="text-soviet-red" />
                                             <span className="font-bold">{purchaseModal.item.name[lang]}</span>
                                         </div>
-                                        <div className="flex items-center justify-center gap-2 text-soviet-gold font-bold">
-                                            {purchaseModal.item.price} <Star size={16} fill="currentColor" />
-                                        </div>
+                                        <div className="flex items-center justify-center gap-2 text-soviet-gold font-bold">{purchaseModal.item.price} <Star size={16} fill="currentColor" /></div>
                                     </div>
                                     <div className="flex gap-3">
-                                        <Button className="flex-1" rounded variant="primary" onClick={confirmPurchase}>
-                                            {T.yes}
-                                        </Button>
-                                        <Button className="flex-1" rounded variant="secondary" onClick={() => setPurchaseModal(null)}>
-                                            {T.no}
-                                        </Button>
+                                        <Button className="flex-1" rounded variant="primary" onClick={confirmPurchase}>{T.yes}</Button>
+                                        <Button className="flex-1" rounded variant="secondary" onClick={() => setPurchaseModal(null)}>{T.no}</Button>
                                     </div>
                                 </>
                              )}
@@ -438,9 +428,7 @@ export default function App() {
                     </div>
 
                     <div className="bg-[#f0f9ff] border-2 border-blue-200 p-4 mb-4 shadow-hard-sm relative overflow-visible group rounded-2xl">
-                        <div className="absolute -top-3 -right-2 bg-soviet-red text-white text-[10px] px-3 py-1 font-bold uppercase rotate-12 shadow-sm rounded-lg border border-black/10 z-20 whitespace-nowrap min-w-[60px] text-center">
-                            {T.bonus}
-                        </div>
+                        <div className="absolute -top-3 -right-2 bg-soviet-red text-white text-[9px] px-2 py-0.5 font-bold uppercase rotate-12 shadow-sm rounded border border-black/20 z-20 whitespace-nowrap min-w-[50px] text-center">{T.bonus}</div>
                         <div className="flex items-center gap-4">
                             <div className="p-2 bg-soviet-gold border-2 border-black rounded-xl shadow-hard-sm group-hover:scale-110 transition-transform">
                                 <Film size={24} className="text-black" />
@@ -490,6 +478,7 @@ export default function App() {
     if (gameState === 'gameover') {
         return (
             <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-dark/95 font-oswald relative overflow-hidden pb-24">
+                 <Toast />
                  <div className="max-w-md w-full bg-white border-4 border-black p-6 shadow-2xl relative rotate-1 animate-slide-up rounded-[40px]">
                     <h2 className="font-ruslan text-5xl mb-6 text-center text-soviet-dark drop-shadow-md uppercase">{T.gameover}</h2>
                     <div className="bg-soviet-cream border-2 border-black p-4 mb-6 text-center shadow-hard-sm rounded-3xl">
@@ -545,6 +534,7 @@ export default function App() {
 
     return (
         <div className="min-h-screen w-full flex flex-col bg-soviet-cream font-oswald relative paper-texture overflow-x-hidden">
+            <Toast />
             <div className="bg-soviet-red border-b-4 border-black p-2.5 pt-safe-top z-50 sticky top-0 shadow-hard w-full">
                 <div className="max-w-lg mx-auto flex justify-between items-end gap-2 px-1">
                     <div className="bg-soviet-cream border-2 border-black px-2.5 py-1 shadow-hard-sm transform -rotate-1 min-w-[65px] rounded-lg">
