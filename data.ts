@@ -1,13 +1,11 @@
 import { Cartoon } from './types';
 
-// Using placeholder images for demo purposes as original local paths won't work in this environment.
-// In a real build, ensure these paths are valid or use URLs.
 export const CARTOONS: Cartoon[] = [
   { id: "nu_pogodi", imageUrl: "https://picsum.photos/id/237/800/600", ru: { title: "Ну, погоди!", desc: "Легендарная погоня Волка за Зайцем." }, en: { title: "Well, Just You Wait!", desc: "Legendary chase of the Wolf after the Hare." }, tr: { title: "Seni Gidi Seni!", desc: "Kurt'un Tavşan'ı efsanevi kovalamacası." } },
-  { id: "vinni", imageUrl: "https://picsum.photos/id/1025/800/600", ru: { title: "Винни-Пух", desc: "Винни-Пуха озвучивал Евгений Леонов." }, en: { title: "Winnie-the-Pooh", desc: "Soviet version of the famous bear." }, tr: { title: "Winnie-the-Pooh", desc: "Ünlü ayının Sovyet versiyonu." } },
+  { id: "vinni", imageUrl: "https://picsum.photos/id/1025/800/600", ru: { title: "Винни-Пух", desc: "Винни-Пуха озвучивал Евгений Леонов." }, en: { title: "Winnie-the-Pooh", desc: "Soviet version of the famous bear." }, tr: { title: "Winnie-the-Pooh", desc: "Ünlü ayının Sovyet версиону." } },
   { id: "prostokvashino", imageUrl: "https://picsum.photos/id/1074/800/600", ru: { title: "Простоквашино", desc: "Дядя Фёдор уехал жить с котом и псом." }, en: { title: "Prostokvashino", desc: "A boy lives in a village with a cat and a dog." }, tr: { title: "Prostokvaşino", desc: "Bir çocuk köyde kedi ve köpekle yaşar." } },
   { id: "bremenskie", imageUrl: "https://picsum.photos/id/1084/800/600", ru: { title: "Бременские музыканты", desc: "Музыкальная фантазия с элементами рок-н-ролла." }, en: { title: "Bremen Musicians", desc: "Musical fantasy with rock-n-roll elements." }, tr: { title: "Bremen Mızıkacıları", desc: "Rock-n-roll öğeleri içeren müzikal fantezi." } },
-  { id: "ezhik", imageUrl: "https://picsum.photos/id/16/800/600", ru: { title: "Ёжик в тумане", desc: "Признан лучшим мультфильмом всех времён." }, en: { title: "Hedgehog in the Fog", desc: "Acclaimed as the best cartoon of all time." }, tr: { title: "Sisteki Kirpi", desc: "Tüm zamanların en iyi çizgi filmi seçildi." } },
+  { id: "ezhik", imageUrl: "https://picsum.photos/id/16/800/600", ru: { title: "Ёжик в тумане", desc: "Признан лучшим мультфильмом всех времён." }, en: { title: "Hedgehog in the Fog", desc: "Acclaimed as the best cartoon of all time." }, tr: { title: "Sisteki Kirpi", desc: "Tüm zamanların en iyi çizги filmi seçildi." } },
   { id: "karlson", imageUrl: "https://picsum.photos/id/177/800/600", ru: { title: "Малыш и Карлсон", desc: "История о человеке, который живет на крыше." }, en: { title: "Kid and Karlsson", desc: "Story about a man who lives on the roof." }, tr: { title: "Çocuk ve Karlsson", desc: "Çatıda yaşayan bir adamın hikayesi." } },
   { id: "pes", imageUrl: "https://picsum.photos/id/200/800/600", ru: { title: "Жил-был пёс", desc: "Фраза «Щас спою!» стала крылатой." }, en: { title: "Once Upon a Dog", desc: "The phrase 'I'll sing now!' became legendary." }, tr: { title: "Bir Zamanlar Bir Köpek", desc: "'Şimdi şarkı söyleyeceğim!' efsane oldu." } },
   { id: "taina", imageUrl: "https://picsum.photos/id/219/800/600", ru: { title: "Тайна третьей планеты", desc: "Фантастическое путешествие Алисы Селезнёвой." }, en: { title: "Mystery of the Third Planet", desc: "Sci-fi adventure of Alice Selezneva." }, tr: { title: "Üçüncü Gezegenin Sırrı", desc: "Alice Selezneva'nın bilim kurgu macerası." } },
@@ -33,7 +31,25 @@ export const CARTOONS: Cartoon[] = [
 ];
 
 export const TRANSLATIONS = {
-    ru: { title: "СоюзМультКвиз", subtitle: "МУЛЬТФИЛЬМЫ СССР", start: "НАЧАТЬ", shop: "МАГАЗИН", score: "СЧЕТ", level: "УРОВЕНЬ", record: "РЕКОРД", stars: "ЗВЕЗДЫ", question: "ОТКУДА ЭТОТ КАДР?", frame_label: "КАДР ИЗ МУЛЬТФИЛЬМА", next: "ДАЛЕЕ", correct: "ВЕРНО!", wrong: "ОШИБКА!", gameover: "КОНЕЦ ФИЛЬМА", your_score: "ВАШ РЕЗУЛЬТАТ", gameover_msg: "Плёнка оборвалась! Но вы можете склеить её.", revive: "ВОСКРЕСНУТЬ (+1 ❤)", ad_hint: "Смотреть рекламу", menu: "В МЕНЮ", resume: "ПРОДОЛЖИТЬ", pause: "ПАУЗА", shop_title: "ЛАВКА", shop_msg: "Здесь скоро появятся новые товары!", tv_brand: "РУБИН" },
-    en: { title: "SovietToonQuiz", subtitle: "USSR CARTOONS", start: "START", shop: "SHOP", score: "SCORE", level: "LEVEL", record: "BEST", stars: "STARS", question: "GUESS THE CARTOON", frame_label: "SCENE FROM CARTOON", next: "NEXT", correct: "CORRECT!", wrong: "WRONG!", gameover: "THE END", your_score: "YOUR SCORE", gameover_msg: "The film broke! But you can fix it.", revive: "REVIVE (+1 ❤)", ad_hint: "Watch Ad", menu: "MENU", resume: "RESUME", pause: "PAUSED", shop_title: "STORE", shop_msg: "New items coming soon!", tv_brand: "RUBIN" },
-    tr: { title: "SovyetÇizgiQuiz", subtitle: "SSCB ÇİZGİ FİLMLERİ", start: "BAŞLA", shop: "MAĞAZA", score: "PUAN", level: "SEVİYE", record: "REKOR", stars: "YILDIZLAR", question: "HANGİ ÇİZGİ FİLM?", frame_label: "ÇİZGİ FİLMDEN KARE", next: "SONRAKİ", correct: "DOĞRU!", wrong: "YANLIŞ!", gameover: "FİLMİN SONU", your_score: "PUANINIZ", gameover_msg: "Film koptu! Ama tamir edebilirsin.", revive: "CANLAN (+1 ❤)", ad_hint: "Reklam izle", menu: "MENÜ", resume: "DEVAM", pause: "DURAKLATILDI", shop_title: "DÜKKAN", shop_msg: "Yeni ürünler yakında!", tv_brand: "RUBIN" }
+    ru: { 
+        title: "СоюзМультКвиз", subtitle: "МУЛЬТФИЛЬМЫ СССР", start: "НАЧАТЬ", shop: "МАГАЗИН", score: "СЧЕТ", level: "УРОВЕНЬ", record: "РЕКОРД", stars: "ЗВЕЗДЫ", 
+        question: "ОТКУДА ЭТО?", frame_label: "КАДР ИЗ МУЛЬТФИЛЬМА", next: "ДАЛЕЕ", correct: "ВЕРНО!", wrong: "ОШИБКА!", gameover: "КОНЕЦ ФИЛЬМА", 
+        your_score: "ВАШ РЕЗУЛЬТАТ", gameover_msg: "Плёнка оборвалась! Но вы можете склеить её.", revive: "ВОСКРЕСНУТЬ (+1 ❤)", ad_hint: "Смотреть рекламу", 
+        menu: "В МЕНЮ", resume: "ПРОДОЛЖИТЬ", pause: "ПАУЗА", shop_title: "ЛАВКА", shop_msg: "Новинки скоро!", tv_brand: "РУБИН", 
+        bonus: "БОНУС", earn_stars: "ПОЛУЧИТЬ ЗВЕЗДЫ", watch_ad_desc: "Смотри рекламу — получай +5 ⭐", earn: "ПОЛУЧИТЬ"
+    },
+    en: { 
+        title: "SovietToonQuiz", subtitle: "USSR CARTOONS", start: "START", shop: "SHOP", score: "SCORE", level: "LEVEL", record: "BEST", stars: "STARS", 
+        question: "WHICH ONE?", frame_label: "SCENE FROM CARTOON", next: "NEXT", correct: "CORRECT!", wrong: "WRONG!", gameover: "THE END", 
+        your_score: "YOUR SCORE", gameover_msg: "The film broke! But you can fix it.", revive: "REVIVE (+1 ❤)", ad_hint: "Watch Ad", 
+        menu: "MENU", resume: "RESUME", pause: "PAUSED", shop_title: "STORE", shop_msg: "New items coming soon!", tv_brand: "RUBIN",
+        bonus: "BONUS", earn_stars: "GET STARS", watch_ad_desc: "Watch ad — get +5 ⭐", earn: "GET"
+    },
+    tr: { 
+        title: "SovyetQuiz", subtitle: "SSCB ÇİZGİ FİLMLERİ", start: "BAŞLA", shop: "MAĞAZA", score: "PUAN", level: "SEVİYE", record: "REKOR", stars: "YILDIZLAR", 
+        question: "HANGİSİ?", frame_label: "KARE", next: "SONRAKİ", correct: "DOĞRU!", wrong: "YANLIŞ!", gameover: "FİLMİN SONU", 
+        your_score: "PUANINIZ", gameover_msg: "Film koptu! Ama tamir edebilirsin.", revive: "CANLAN (+1 ❤)", ad_hint: "Reklam izle", 
+        menu: "MENÜ", resume: "DEVAM", pause: "DURAKLATILDI", shop_title: "DÜKKAN", shop_msg: "Yeni ürünler yakında!", tv_brand: "RUBIN",
+        bonus: "BONUS", earn_stars: "YILDIZ KAZAN", watch_ad_desc: "Reklam izle — +5 ⭐ kazan", earn: "KAZAN"
+    }
 };
