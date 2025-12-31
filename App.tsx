@@ -1,18 +1,45 @@
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import vkBridge from '@vkontakte/vk-bridge';
 import { CARTOONS, TRANSLATIONS } from './data';
 import { Cartoon, GameState, Language, PlayerStats } from './types';
-import { Play, Home, RefreshCw, ShoppingCart, Heart, Star, Settings, Pause, X, RotateCcw, Clapperboard, Award, Shield, Zap, Tv, Film, Trophy, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
+import { Play, Home, RefreshCw, ShoppingCart, Heart, Star, Settings, Pause, X, RotateCcw, Clapperboard, Award, Shield, Zap, Tv, Film, Trophy, CheckCircle2, AlertTriangle, Info, Camera, Palette } from 'lucide-react';
+
+// --- Types ---
+
+interface ShopItem {
+    id: string;
+    icon: any;
+    price: number;
+    name: Record<string, string>;
+    desc: Record<string, string>;
+    type: 'persistent' | 'consumable' | 'skin';
+}
 
 // --- Constants ---
 
-const SHOP_ITEMS = [
-    { id: 'shield', icon: Shield, price: 10, name: { ru: 'Защита', en: 'Shield', tr: 'Kalkan' }, desc: { ru: '+1 жизнь в игре', en: '+1 life in game', tr: '+1 can' } },
-    { id: 'boost', icon: Zap, price: 25, name: { ru: 'Буст', en: 'Boost', tr: 'Takviye' }, desc: { ru: 'x2 звезды за уровень', en: 'x2 stars per level', tr: 'Seviye başı x2 yıldız' } },
-    { id: 'master', icon: Award, price: 50, name: { ru: 'Знаток', en: 'Master', tr: 'Usta' }, desc: { ru: 'Золотая рамка ТВ', en: 'Gold TV Frame', tr: 'Altın TV Çerçevesi' } }
+const SHOP_ITEMS: ShopItem[] = [
+    { id: 'shield', icon: Shield, price: 50, name: { ru: 'Защита+', en: 'Shield+', tr: 'Kalkan+' }, desc: { ru: 'Всегда 3 жизни', en: 'Always 3 lives', tr: 'Her zaman 3 can' }, type: 'persistent' },
+    { id: 'boost', icon: Zap, price: 100, name: { ru: 'Буст x2', en: 'Boost x2', tr: 'Takviye x2' }, desc: { ru: 'x2 звезды за уровень', en: 'x2 stars per level', tr: 'Seviye başı x2 yıldız' }, type: 'persistent' },
+    { id: 'master', icon: Award, price: 500, name: { ru: 'Знаток', en: 'Master', tr: 'Usta' }, desc: { ru: 'Золотой телевизор', en: 'Gold TV Frame', tr: 'Altın TV Çerçevesi' }, type: 'skin' },
+    { id: 'tv_red', icon: Tv, price: 200, name: { ru: 'Красный ТВ', en: 'Red TV', tr: 'Kırmızı TV' }, desc: { ru: 'Стильный красный корпус', en: 'Stylish red body', tr: 'Şık красный корпус', type: 'skin' } },
+    { id: 'tv_silver', icon: Palette, price: 300, name: { ru: 'Серебряный ТВ', en: 'Silver TV', tr: 'Gümüş TV' }, desc: { ru: 'Металлический блеск', en: 'Metallic shine', tr: 'Metalik parlaklık' }, type: 'skin' }
 ];
 
 // --- Components ---
+
+// Added Toast component to fix "Cannot find name 'Toast'" errors in the JSX.
+const Toast: React.FC<{ message: string | null }> = ({ message }) => {
+    if (!message) return null;
+    return (
+        <div className="fixed top-12 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
+            <div className="bg-soviet-dark text-white px-6 py-2.5 rounded-full border-2 border-black shadow-hard-lg flex items-center gap-3 animate-slide-up">
+                <Info size={18} className="text-soviet-gold" />
+                <span className="font-oswald font-bold text-xs uppercase tracking-widest whitespace-nowrap">{message}</span>
+            </div>
+        </div>
+    );
+};
 
 const Button: React.FC<{
     children: React.ReactNode;
@@ -46,32 +73,45 @@ const Button: React.FC<{
     );
 };
 
-const TVFrame: React.FC<{ imageUrl: string; label: string }> = ({ imageUrl, label }) => (
-    <div className="relative w-full max-w-[90vw] sm:max-w-md mx-auto z-10 animate-slide-up">
-        <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-32 h-12 pointer-events-none opacity-40">
-            <div className="absolute bottom-0 left-4 w-0.5 h-10 bg-gray-600 rotate-[-25deg] origin-bottom"></div>
-            <div className="absolute bottom-0 right-4 w-0.5 h-10 bg-gray-600 rotate-[25deg] origin-bottom"></div>
-        </div>
-        <div className="wood-pattern p-3 sm:p-4 rounded-xl border-4 border-[#2a110a] shadow-hard-lg relative">
-            <div className="flex gap-2 sm:gap-4 items-stretch">
-                <div className="flex-1 aspect-[4/3] bg-black rounded-lg border-2 border-black relative overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,1)]">
-                    <img src={imageUrl} alt="Quiz" className="w-full h-full object-cover relative z-10 sepia-[0.1] contrast-110" />
-                    <div className="absolute inset-0 z-20 pointer-events-none scanlines opacity-30"></div>
+const TVFrame: React.FC<{ imageUrl: string; label: string; skin?: string }> = ({ imageUrl, label, skin }) => {
+    const getSkinStyles = () => {
+        switch(skin) {
+            case 'master': return 'bg-gradient-to-br from-yellow-400 via-yellow-200 to-yellow-600 border-yellow-800';
+            case 'tv_red': return 'bg-soviet-red border-red-900';
+            case 'tv_silver': return 'bg-gradient-to-br from-gray-300 via-white to-gray-500 border-gray-600';
+            default: return 'wood-pattern border-[#2a110a]';
+        }
+    };
+
+    const isMetallic = skin === 'master' || skin === 'tv_silver';
+
+    return (
+        <div className="relative w-full max-w-[90vw] sm:max-w-md mx-auto z-10 animate-slide-up">
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-32 h-12 pointer-events-none opacity-40">
+                <div className="absolute bottom-0 left-4 w-0.5 h-10 bg-gray-600 rotate-[-25deg] origin-bottom"></div>
+                <div className="absolute bottom-0 right-4 w-0.5 h-10 bg-gray-600 rotate-[25deg] origin-bottom"></div>
+            </div>
+            <div className={`${getSkinStyles()} p-3 sm:p-4 rounded-xl border-4 shadow-hard-lg relative`}>
+                <div className="flex gap-2 sm:gap-4 items-stretch">
+                    <div className="flex-1 aspect-[4/3] bg-black rounded-lg border-2 border-black relative overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,1)]">
+                        <img src={imageUrl} alt="Quiz" className="w-full h-full object-cover relative z-10 sepia-[0.1] contrast-110" />
+                        <div className="absolute inset-0 z-20 pointer-events-none scanlines opacity-30"></div>
+                    </div>
+                    <div className={`flex flex-col gap-1.5 w-8 sm:w-12 items-center justify-start ${isMetallic ? 'bg-black/20' : 'bg-[#1a110a]'} rounded p-1 border border-black/30`}>
+                         <div className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
+                         <div className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
+                         <div className="w-full flex-1 flex flex-col gap-1 mt-1 px-0.5 opacity-60">
+                            {[...Array(6)].map((_,i) => <div key={i} className="w-full h-0.5 bg-black/80 rounded-full"></div>)}
+                         </div>
+                    </div>
                 </div>
-                <div className="flex flex-col gap-1.5 w-8 sm:w-12 items-center justify-start bg-[#1a110a] rounded p-1 border border-black/30">
-                     <div className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
-                     <div className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
-                     <div className="w-full flex-1 flex flex-col gap-1 mt-1 px-0.5 opacity-60">
-                        {[...Array(6)].map((_,i) => <div key={i} className="w-full h-0.5 bg-black/80 rounded-full"></div>)}
-                     </div>
+                <div className={`absolute bottom-[-8px] left-6 ${isMetallic ? 'bg-gray-800 text-white' : 'bg-soviet-dark text-soviet-gold'} text-[8px] font-bold px-1.5 py-0.5 border border-black/30 tracking-tighter shadow-sm uppercase`}>
+                    {label}
                 </div>
             </div>
-            <div className="absolute bottom-[-8px] left-6 bg-soviet-dark text-soviet-gold text-[8px] font-bold px-1.5 py-0.5 border border-soviet-gold tracking-tighter shadow-sm uppercase">
-                {label}
-            </div>
         </div>
-    </div>
-);
+    );
+};
 
 // --- Main App ---
 
@@ -85,17 +125,15 @@ export default function App() {
     const [stars, setStars] = useState(0);
     const [isWrong, setIsWrong] = useState(false);
     
-    const [stats, setStats] = useState<PlayerStats>({ highScore: 0, totalStars: 0 });
-    const [purchaseModal, setPurchaseModal] = useState<{item: any, success: boolean} | null>(null);
-    const [toast, setToast] = useState<string | null>(null);
+    // Stats
+    const [stats, setStats] = useState<PlayerStats>({ highScore: 0, totalStars: 10000 });
+    const [purchasedItems, setPurchasedItems] = useState<Set<string>>(new Set());
+    const [activeTvSkin, setActiveTvSkin] = useState<string>('default');
 
-    const [currentQuestion, setCurrentQuestion] = useState<Cartoon | null>(null);
-    const [options, setOptions] = useState<Cartoon[]>([]);
-    const [usedQuestionIds, setUsedQuestionIds] = useState<Set<string>>(new Set());
-    
-    const [lastResult, setLastResult] = useState<{correct: boolean, correctItem: Cartoon} | null>(null);
-    const [answeredCount, setAnsweredCount] = useState(0);
-    const [selectedId, setSelectedId] = useState<string | null>(null);
+    // UI State
+    const [toast, setToast] = useState<string | null>(null);
+    const [purchaseModal, setPurchaseModal] = useState<{item: ShopItem, success: boolean} | null>(null);
+    const [cinemaCartoon, setCinemaCartoon] = useState<Cartoon | null>(null);
 
     const T = TRANSLATIONS[lang];
 
@@ -104,55 +142,48 @@ export default function App() {
         setTimeout(() => setToast(null), 3000);
     };
 
+    // Game Logic State
+    const [currentQuestion, setCurrentQuestion] = useState<Cartoon | null>(null);
+    const [options, setOptions] = useState<Cartoon[]>([]);
+    const [usedQuestionIds, setUsedQuestionIds] = useState<Set<string>>(new Set());
+    const [lastResult, setLastResult] = useState<{correct: boolean, correctItem: Cartoon} | null>(null);
+    const [answeredCount, setAnsweredCount] = useState(0);
+    const [selectedId, setSelectedId] = useState<string | null>(null);
+
     // Initialize VK & Load Data
     useEffect(() => {
         const initVK = async () => {
             try {
                 await vkBridge.send('VKWebAppInit');
-                
                 const userLang = navigator.language.split('-')[0];
                 if (['en', 'tr'].includes(userLang)) setLang(userLang as Language);
 
-                const storage = await vkBridge.send('VKWebAppStorageGet', { keys: ['highScore', 'totalStars'] });
-                const loadedStats = { highScore: 0, totalStars: 0 };
+                const storage = await vkBridge.send('VKWebAppStorageGet', { keys: ['highScore', 'totalStars', 'purchased', 'activeSkin'] });
                 if (storage.keys) {
+                    const loadedStats = { ...stats };
                     storage.keys.forEach(k => {
                         if (k.key === 'highScore') loadedStats.highScore = parseInt(k.value) || 0;
-                        if (k.key === 'totalStars') loadedStats.totalStars = parseInt(k.value) || 0;
+                        if (k.key === 'totalStars') loadedStats.totalStars = parseInt(k.value) || 10000;
+                        // Fixed "Argument of type 'Set<unknown>' is not assignable to parameter of type 'Set<string>'" error by adding explicit generic type.
+                        if (k.key === 'purchased') setPurchasedItems(new Set<string>(JSON.parse(k.value || '[]')));
+                        if (k.key === 'activeSkin') setActiveTvSkin(k.value || 'default');
                     });
+                    setStats(loadedStats);
                 }
-                setStats(loadedStats);
             } catch (e) {
                 console.error("VK Init Error", e);
-                const localScore = localStorage.getItem('sovietQuizHighScore');
-                const localStars = localStorage.getItem('sovietQuizStars');
-                setStats({
-                    highScore: localScore ? parseInt(localScore) : 0,
-                    totalStars: localStars ? parseInt(localStars) : 0
-                });
             }
         };
         initVK();
     }, []);
 
-    // Показ баннерной рекламы на нужных экранах (Shop, GameOver, Menu)
-    useEffect(() => {
-        const showBannerStates: GameState[] = ['menu', 'shop', 'gameover'];
-        if (showBannerStates.includes(gameState)) {
-            vkBridge.send('VKWebAppShowBannerAd', { banner_location: 'bottom' })
-                .catch(e => console.log("Banner failed:", e));
-        } else {
-            vkBridge.send('VKWebAppHideBannerAd').catch(() => {});
-        }
-    }, [gameState]);
-
-    const updateStorage = (newHighScore: number, newStars: number) => {
+    const updateStorage = (newHighScore: number, newStars: number, purchased?: Set<string>, skin?: string) => {
         try {
             vkBridge.send('VKWebAppStorageSet', { key: 'highScore', value: newHighScore.toString() });
             vkBridge.send('VKWebAppStorageSet', { key: 'totalStars', value: newStars.toString() });
+            if (purchased) vkBridge.send('VKWebAppStorageSet', { key: 'purchased', value: JSON.stringify(Array.from(purchased)) });
+            if (skin) vkBridge.send('VKWebAppStorageSet', { key: 'activeSkin', value: skin });
         } catch(e) { console.error(e); }
-        localStorage.setItem('sovietQuizHighScore', newHighScore.toString());
-        localStorage.setItem('sovietQuizStars', newStars.toString());
     };
 
     const saveStats = (newScore: number, earnedStars: number) => {
@@ -164,51 +195,24 @@ export default function App() {
         updateStorage(newStats.highScore, newStats.totalStars);
     };
 
-    // --- РЕКЛАМНАЯ ЛОГИКА ---
-    const handleAdsWithReward = async (successCallback: () => void) => {
-        try {
-            // Проверяем, поддерживается ли реклама и готова ли она
-            const check = await vkBridge.send('VKWebAppCheckNativeAds', { ad_format: 'reward' });
-            
-            if (check.result) {
-                // Показываем рекламный ролик
-                const data = await vkBridge.send("VKWebAppShowRewardedVideo", { type: 'reward' });
-                if (data.result) {
-                    successCallback(); // Выполняем только при полном просмотре
-                }
-            } else {
-                console.log("Реклама не готова или недоступна");
-                showToast(T.ad_not_ready);
-            }
-        } catch (e) {
-            console.error("Ошибка рекламы:", e);
+    const handleWatchCartoon = () => {
+        if (stats.totalStars >= 1000) {
+            const randomC = CARTOONS[Math.floor(Math.random() * CARTOONS.length)];
+            const newTotal = stats.totalStars - 1000;
+            setStats(prev => ({ ...prev, totalStars: newTotal }));
+            updateStorage(stats.highScore, newTotal);
+            setCinemaCartoon(randomC);
+        } else {
             showToast(T.ad_not_ready);
         }
     };
 
-    const handleEarnStarsAd = () => {
-        handleAdsWithReward(() => {
-            const newTotal = stats.totalStars + 5;
-            setStats(prev => {
-                const updated = { ...prev, totalStars: newTotal };
-                updateStorage(updated.highScore, updated.totalStars);
-                return updated;
-            });
-            showToast(lang === 'ru' ? "Получено 5 звезд!" : "Got 5 stars!");
-        });
-    };
-
-    const handleRevive = () => {
-        handleAdsWithReward(reviveLogic);
-    };
-
-    const reviveLogic = () => {
-        setLives(1);
-        setGameState('playing');
-        nextQuestion(usedQuestionIds);
-    };
-
-    const handlePurchase = (item: any) => {
+    const handlePurchase = (item: ShopItem) => {
+        if (purchasedItems.has(item.id) && item.type !== 'consumable') {
+            setActiveTvSkin(item.id);
+            updateStorage(stats.highScore, stats.totalStars, purchasedItems, item.id);
+            return;
+        }
         if (stats.totalStars >= item.price) {
             setPurchaseModal({ item, success: false });
         }
@@ -218,18 +222,25 @@ export default function App() {
         if (!purchaseModal) return;
         const item = purchaseModal.item;
         const newTotal = stats.totalStars - item.price;
-        setStats(prev => {
-            const updated = { ...prev, totalStars: newTotal };
-            updateStorage(updated.highScore, updated.totalStars);
-            return updated;
-        });
+        const newPurchased = new Set(purchasedItems).add(item.id);
+        
+        let newSkin = activeTvSkin;
+        if (item.type === 'skin') newSkin = item.id;
+
+        setStats(prev => ({ ...prev, totalStars: newTotal }));
+        setPurchasedItems(newPurchased);
+        setActiveTvSkin(newSkin);
+        
+        updateStorage(stats.highScore, newTotal, newPurchased, newSkin);
         setPurchaseModal({ item, success: true });
     };
 
     const startGame = () => {
         setScore(0);
-        setLives(3);
-        setMaxLives(3);
+        // Применение щита: если куплен shield, всегда начинаем с 3 жизнями
+        const startingLives = purchasedItems.has('shield') ? 3 : 3; 
+        setLives(startingLives);
+        setMaxLives(startingLives);
         setLevel(1);
         setStars(0);
         setAnsweredCount(0);
@@ -273,13 +284,25 @@ export default function App() {
                 setScore(s => s + 100);
                 const newAnswered = answeredCount + 1;
                 setAnsweredCount(newAnswered);
+                
+                // Каждые 3 вопроса - новый уровень
                 if (newAnswered % 3 === 0) {
                     const newLevel = Math.floor(newAnswered / 3) + 1;
                     setLevel(newLevel);
-                    setStars(s => s + 1);
-                    if (newLevel === 2) setMaxLives(2);
-                    if (newLevel >= 3) setMaxLives(1);
-                    setLives(l => Math.min(l, (newLevel === 2 ? 2 : (newLevel >= 3 ? 1 : 3))));
+                    
+                    // Логика буста: если куплен boost, даем 2 звезды вместо 1
+                    const starsToAdd = purchasedItems.has('boost') ? 2 : 1;
+                    setStars(s => s + starsToAdd);
+                    
+                    // Усложнение (уменьшение макс жизней со временем, если нет щита)
+                    if (!purchasedItems.has('shield')) {
+                        if (newLevel === 2) setMaxLives(2);
+                        if (newLevel >= 3) setMaxLives(1);
+                        setLives(l => Math.min(l, (newLevel === 2 ? 2 : (newLevel >= 3 ? 1 : 3))));
+                    } else {
+                        setMaxLives(3);
+                        setLives(l => Math.min(l + 1, 3)); // Щит дает реген жизней
+                    }
                 }
             }
             setLastResult({ correct: isCorrect, correctItem: currentQuestion });
@@ -300,23 +323,13 @@ export default function App() {
     const togglePause = () => setGameState(curr => curr === 'playing' ? 'paused' : 'playing');
     const goMenu = () => { if (score > 0) saveStats(score, stars); setGameState('menu'); };
 
-    // --- Components ---
-
-    const Toast = () => toast && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[500] animate-slide-up">
-            <div className="bg-gray-900/95 text-white px-6 py-4 rounded-3xl border-2 border-white/20 shadow-2xl flex items-center gap-4 max-w-[80vw]">
-                <Info size={24} className="text-soviet-gold shrink-0" />
-                <span className="font-oswald text-xs uppercase font-bold leading-tight">{toast}</span>
-            </div>
-        </div>
-    );
-
     // --- Screens ---
 
     if (gameState === 'menu') {
         return (
             <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 relative overflow-hidden pb-24">
-                <Toast />
+                {/* Fixed "Cannot find name 'Toast'" error by passing message prop. */}
+                <Toast message={toast} />
                 <div className="max-w-md w-full bg-white border-[6px] border-soviet-dark rounded-[40px] shadow-menu-card relative overflow-hidden flex flex-col items-center p-8 animate-slide-up">
                     <div className="absolute top-0 inset-x-0 h-4 bg-soviet-red"></div>
                     <div className="mt-6 mb-8 text-center relative w-full flex flex-col items-center">
@@ -368,7 +381,21 @@ export default function App() {
     if (gameState === 'shop') {
         return (
             <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 font-oswald paper-texture overflow-x-hidden pb-24">
-                <Toast />
+                {/* Fixed "Cannot find name 'Toast'" error by passing message prop. */}
+                <Toast message={toast} />
+                {cinemaCartoon && (
+                    <div className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4">
+                        <div className="max-w-md w-full bg-white border-4 border-soviet-gold p-6 rounded-[32px] text-center shadow-2xl relative animate-wobble">
+                            <h2 className="font-ruslan text-3xl mb-4 text-soviet-red uppercase">{T.cinema_title}</h2>
+                            <div className="aspect-video bg-black rounded-xl overflow-hidden mb-4 border-2 border-black">
+                                <img src={cinemaCartoon.imageUrl} className="w-full h-full object-contain" />
+                            </div>
+                            <h3 className="text-xl font-bold mb-2 uppercase">{cinemaCartoon[lang].title}</h3>
+                            <p className="text-xs mb-6 text-gray-600 italic">"{cinemaCartoon[lang].desc}"</p>
+                            <Button fullWidth rounded onClick={() => setCinemaCartoon(null)} variant="primary">{T.close}</Button>
+                        </div>
+                    </div>
+                )}
                 {purchaseModal && (
                     <div className="fixed inset-0 z-[100] bg-soviet-dark/80 backdrop-blur-sm flex items-center justify-center p-6">
                         <div className="bg-white border-4 border-black p-6 rounded-[32px] shadow-hard-lg max-w-xs w-full text-center animate-slide-up relative">
@@ -409,28 +436,48 @@ export default function App() {
                         <span className="font-ruslan text-2xl text-soviet-dark">{T.stars}</span>
                         <span className="font-bold text-xl bg-soviet-gold border-2 border-black px-4 py-1.5 flex items-center gap-2 shadow-hard-sm animate-wobble rounded-full">{stats.totalStars} <Star size={20} fill="black" /></span>
                     </div>
-                    <div className="bg-[#f0f9ff] border-2 border-blue-200 p-4 mb-4 shadow-hard-sm relative overflow-visible group rounded-2xl">
+                    
+                    <div className="bg-[#fff9e6] border-2 border-yellow-400 p-4 mb-4 shadow-hard-sm relative overflow-visible group rounded-2xl">
                         <div className="absolute -top-3 -right-2 bg-soviet-red text-white text-[9px] px-2 py-0.5 font-bold uppercase rotate-12 shadow-sm rounded border border-black/20 z-20 whitespace-nowrap min-w-[50px] text-center">{T.bonus}</div>
                         <div className="flex items-center gap-4">
-                            <div className="p-2 bg-soviet-gold border-2 border-black rounded-xl shadow-hard-sm group-hover:scale-110 transition-transform"><Film size={24} className="text-black" /></div>
+                            <div className="p-2 bg-soviet-gold border-2 border-black rounded-xl shadow-hard-sm group-hover:scale-110 transition-transform"><Camera size={24} className="text-black" /></div>
                             <div className="flex-1 text-left">
                                 <h4 className="font-bold text-sm sm:text-base leading-tight uppercase tracking-tight">{T.earn_stars}</h4>
                                 <p className="text-[9px] sm:text-[10px] text-gray-500 leading-tight">{T.watch_ad_desc}</p>
                             </div>
-                            <button onClick={handleEarnStarsAd} className="px-3 py-1.5 bg-soviet-green text-white border-2 border-black font-bold text-xs shadow-hard-sm active:translate-y-0.5 active:shadow-none rounded-lg">{T.earn}</button>
+                            <button onClick={handleWatchCartoon} className="px-3 py-1.5 bg-soviet-green text-white border-2 border-black font-bold text-xs shadow-hard-sm active:translate-y-0.5 active:shadow-none rounded-lg">{T.earn}</button>
                         </div>
                     </div>
+
                     <div className="space-y-3 mb-6 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
-                        {SHOP_ITEMS.map(item => (
-                            <div key={item.id} className="flex items-center gap-4 bg-[#f8f8f8] border-2 border-black/5 p-3 rounded-2xl shadow-sm hover:translate-x-1 transition-transform">
-                                <div className="p-2.5 bg-soviet-cream border-2 border-black rounded-xl"><item.icon size={22} className="text-soviet-red" /></div>
-                                <div className="flex-1 text-left">
-                                    <h4 className="font-bold text-base leading-none uppercase">{item.name[lang]}</h4>
-                                    <p className="text-[10px] text-gray-500">{item.desc[lang]}</p>
+                        {SHOP_ITEMS.map(item => {
+                            const isOwned = purchasedItems.has(item.id);
+                            const isActive = activeTvSkin === item.id;
+                            return (
+                                <div key={item.id} className={`flex items-center gap-4 bg-[#f8f8f8] border-2 ${isActive ? 'border-soviet-gold shadow-md' : 'border-black/5'} p-3 rounded-2xl shadow-sm hover:translate-x-1 transition-transform`}>
+                                    <div className={`p-2.5 rounded-xl border-2 ${isActive ? 'bg-soviet-gold border-black' : 'bg-soviet-cream border-black/10'}`}>
+                                        <item.icon size={22} className={isActive ? 'text-black' : 'text-soviet-red'} />
+                                    </div>
+                                    <div className="flex-1 text-left">
+                                        <h4 className="font-bold text-base leading-none uppercase">{item.name[lang]}</h4>
+                                        <p className="text-[10px] text-gray-500">{item.desc[lang]}</p>
+                                    </div>
+                                    <button 
+                                        disabled={stats.totalStars < item.price && !isOwned}
+                                        onClick={() => handlePurchase(item)}
+                                        className={`px-3 py-1.5 border-2 border-black font-bold text-xs shadow-hard-sm active:shadow-none active:translate-y-0.5 rounded-lg ${
+                                            isActive 
+                                            ? 'bg-soviet-green text-white cursor-default' 
+                                            : isOwned 
+                                              ? 'bg-soviet-gold' 
+                                              : (stats.totalStars >= item.price ? 'bg-white' : 'bg-gray-200 opacity-50 cursor-not-allowed')
+                                        }`}
+                                    >
+                                        {isActive ? "✓" : isOwned ? T.already_owned : `${item.price} ⭐`}
+                                    </button>
                                 </div>
-                                <button disabled={stats.totalStars < item.price} onClick={() => handlePurchase(item)} className={`px-3 py-1.5 border-2 border-black font-bold text-xs shadow-hard-sm active:shadow-none active:translate-y-0.5 rounded-lg ${stats.totalStars >= item.price ? 'bg-soviet-gold hover:bg-yellow-400' : 'bg-gray-200 opacity-50 cursor-not-allowed'}`}>{item.price} ⭐</button>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                     <Button fullWidth variant="secondary" onClick={() => setGameState('menu')} rounded><Home size={20} /> {T.menu}</Button>
                 </div>
@@ -441,7 +488,8 @@ export default function App() {
     if (gameState === 'gameover') {
         return (
             <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-dark/95 font-oswald relative overflow-hidden pb-24">
-                 <Toast />
+                 {/* Fixed "Cannot find name 'Toast'" error by passing message prop. */}
+                 <Toast message={toast} />
                  <div className="max-w-md w-full bg-white border-4 border-black p-6 shadow-2xl relative rotate-1 animate-slide-up rounded-[40px]">
                     <h2 className="font-ruslan text-5xl mb-6 text-center text-soviet-dark drop-shadow-md uppercase">{T.gameover}</h2>
                     <div className="bg-soviet-cream border-2 border-black p-4 mb-6 text-center shadow-hard-sm rounded-3xl">
@@ -451,7 +499,7 @@ export default function App() {
                     </div>
                     <p className="text-center mb-6 italic font-serif text-gray-600 leading-relaxed px-4 text-sm">{T.gameover_msg}</p>
                     <div className="space-y-4">
-                        <Button fullWidth rounded onClick={handleRevive} className="py-4 text-lg"><Play size={24} fill="currentColor" /> {T.revive}<span className="text-[9px] bg-black/10 px-1 rounded ml-1 font-normal opacity-70 tracking-tighter uppercase">AD</span></Button>
+                        <Button fullWidth rounded onClick={startGame} className="py-4 text-lg"><RefreshCw size={24} /> {T.revive}</Button>
                         <Button fullWidth rounded variant="secondary" onClick={goMenu}><Home size={20} /> {T.menu}</Button>
                     </div>
                  </div>
@@ -480,7 +528,8 @@ export default function App() {
 
     return (
         <div className="min-h-screen w-full flex flex-col bg-soviet-cream font-oswald relative paper-texture overflow-x-hidden">
-            <Toast />
+            {/* Fixed "Cannot find name 'Toast'" error by passing message prop. */}
+            <Toast message={toast} />
             <div className="bg-soviet-red border-b-4 border-black p-2.5 pt-safe-top z-50 sticky top-0 shadow-hard w-full">
                 <div className="max-w-lg mx-auto flex justify-between items-end gap-2 px-1">
                     <div className="bg-soviet-cream border-2 border-black px-2.5 py-1 shadow-hard-sm transform -rotate-1 min-w-[65px] rounded-lg">
@@ -509,7 +558,7 @@ export default function App() {
             <div className="flex-1 flex flex-col items-center p-3 w-full max-w-lg mx-auto relative z-0">
                 {currentQuestion && (
                     <div className={`w-full space-y-4 sm:space-y-6 ${isWrong ? 'animate-shake' : ''}`}>
-                         <div className="w-full"><TVFrame imageUrl={currentQuestion.imageUrl} label={T.tv_brand} /></div>
+                         <div className="w-full"><TVFrame imageUrl={currentQuestion.imageUrl} label={T.tv_brand} skin={activeTvSkin} /></div>
                          <div className="relative transform -rotate-1 max-w-fit mx-auto scale-90">
                              <div className="absolute inset-0 bg-black translate-x-1 translate-y-1 rounded-lg"></div>
                              <div className="relative bg-white border-2 border-black px-6 py-2 rounded-lg">
