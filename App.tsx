@@ -48,22 +48,16 @@ const Button: React.FC<{
 
 const TVFrame: React.FC<{ imageUrl: string; label: string }> = ({ imageUrl, label }) => (
     <div className="relative w-full max-w-[90vw] sm:max-w-md mx-auto z-10 animate-slide-up">
-        {/* Antenna */}
         <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-32 h-12 pointer-events-none opacity-40">
             <div className="absolute bottom-0 left-4 w-0.5 h-10 bg-gray-600 rotate-[-25deg] origin-bottom"></div>
             <div className="absolute bottom-0 right-4 w-0.5 h-10 bg-gray-600 rotate-[25deg] origin-bottom"></div>
         </div>
-
-        {/* TV Body */}
         <div className="wood-pattern p-3 sm:p-4 rounded-xl border-4 border-[#2a110a] shadow-hard-lg relative">
             <div className="flex gap-2 sm:gap-4 items-stretch">
-                {/* Screen Area */}
                 <div className="flex-1 aspect-[4/3] bg-black rounded-lg border-2 border-black relative overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,1)]">
                     <img src={imageUrl} alt="Quiz" className="w-full h-full object-cover relative z-10 sepia-[0.1] contrast-110" />
                     <div className="absolute inset-0 z-20 pointer-events-none scanlines opacity-30"></div>
                 </div>
-
-                {/* Control Panel Area */}
                 <div className="flex flex-col gap-1.5 w-8 sm:w-12 items-center justify-start bg-[#1a110a] rounded p-1 border border-black/30">
                      <div className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
                      <div className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
@@ -72,8 +66,6 @@ const TVFrame: React.FC<{ imageUrl: string; label: string }> = ({ imageUrl, labe
                      </div>
                 </div>
             </div>
-
-            {/* Brand Label */}
             <div className="absolute bottom-[-8px] left-6 bg-soviet-dark text-soviet-gold text-[8px] font-bold px-1.5 py-0.5 border border-soviet-gold tracking-tighter shadow-sm uppercase">
                 {label}
             </div>
@@ -107,7 +99,6 @@ export default function App() {
 
     const T = TRANSLATIONS[lang];
 
-    // Helper to show custom toast
     const showToast = (msg: string) => {
         setToast(msg);
         setTimeout(() => setToast(null), 3000);
@@ -144,13 +135,12 @@ export default function App() {
         initVK();
     }, []);
 
-    // Manage Banner Ads visibility based on state
+    // Показ баннерной рекламы на нужных экранах (Shop, GameOver, Menu)
     useEffect(() => {
         const showBannerStates: GameState[] = ['menu', 'shop', 'gameover'];
         if (showBannerStates.includes(gameState)) {
-            vkBridge.send('VKWebAppShowBannerAd', { banner_location: 'bottom' }).catch(e => {
-                console.log("Banner not supported or failed:", e);
-            });
+            vkBridge.send('VKWebAppShowBannerAd', { banner_location: 'bottom' })
+                .catch(e => console.log("Banner failed:", e));
         } else {
             vkBridge.send('VKWebAppHideBannerAd').catch(() => {});
         }
@@ -174,19 +164,17 @@ export default function App() {
         updateStorage(newStats.highScore, newStats.totalStars);
     };
 
-    // --- REWARDED ADS HANDLER (User Requested Logic) ---
+    // --- РЕКЛАМНАЯ ЛОГИКА ---
     const handleAdsWithReward = async (successCallback: () => void) => {
         try {
-            // 1. Проверяем, поддерживается ли реклама в принципе
+            // Проверяем, поддерживается ли реклама и готова ли она
             const check = await vkBridge.send('VKWebAppCheckNativeAds', { ad_format: 'reward' });
             
             if (check.result) {
-                // 2. Показываем рекламу
+                // Показываем рекламный ролик
                 const data = await vkBridge.send("VKWebAppShowRewardedVideo", { type: 'reward' });
-                
                 if (data.result) {
-                    // 3. Выполняем логику только при успешном просмотре
-                    successCallback();
+                    successCallback(); // Выполняем только при полном просмотре
                 }
             } else {
                 console.log("Реклама не готова или недоступна");
@@ -194,8 +182,7 @@ export default function App() {
             }
         } catch (e) {
             console.error("Ошибка рекламы:", e);
-            // Часто ошибка падает, если пользователь закрыл рекламу до завершения
-            // Но мы всё равно можем уведомить, если это системный сбой
+            showToast(T.ad_not_ready);
         }
     };
 
@@ -207,6 +194,7 @@ export default function App() {
                 updateStorage(updated.highScore, updated.totalStars);
                 return updated;
             });
+            showToast(lang === 'ru' ? "Получено 5 звезд!" : "Got 5 stars!");
         });
     };
 
@@ -316,9 +304,9 @@ export default function App() {
 
     const Toast = () => toast && (
         <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[500] animate-slide-up">
-            <div className="bg-gray-900/90 text-white px-6 py-3 rounded-full border border-white/20 shadow-xl flex items-center gap-3">
-                <Info size={18} className="text-soviet-gold" />
-                <span className="font-oswald text-xs uppercase tracking-tight">{toast}</span>
+            <div className="bg-gray-900/95 text-white px-6 py-4 rounded-3xl border-2 border-white/20 shadow-2xl flex items-center gap-4 max-w-[80vw]">
+                <Info size={24} className="text-soviet-gold shrink-0" />
+                <span className="font-oswald text-xs uppercase font-bold leading-tight">{toast}</span>
             </div>
         </div>
     );
@@ -416,60 +404,35 @@ export default function App() {
                 )}
 
                 <div className="max-w-md w-full bg-white border-4 border-soviet-dark p-6 rounded-[32px] shadow-hard-lg relative animate-slide-up">
-                     <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-soviet-red text-soviet-cream px-8 py-2 border-2 border-black shadow-hard font-bold tracking-widest -rotate-1 text-xl rounded-full uppercase">
-                        {T.shop_title}
-                    </div>
-
+                     <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-soviet-red text-soviet-cream px-8 py-2 border-2 border-black shadow-hard font-bold tracking-widest -rotate-1 text-xl rounded-full uppercase">{T.shop_title}</div>
                     <div className="mt-8 flex justify-between items-center mb-6 border-b-2 border-dashed border-black/10 pb-4">
                         <span className="font-ruslan text-2xl text-soviet-dark">{T.stars}</span>
-                        <span className="font-bold text-xl bg-soviet-gold border-2 border-black px-4 py-1.5 flex items-center gap-2 shadow-hard-sm animate-wobble rounded-full">
-                             {stats.totalStars} <Star size={20} fill="black" />
-                        </span>
+                        <span className="font-bold text-xl bg-soviet-gold border-2 border-black px-4 py-1.5 flex items-center gap-2 shadow-hard-sm animate-wobble rounded-full">{stats.totalStars} <Star size={20} fill="black" /></span>
                     </div>
-
                     <div className="bg-[#f0f9ff] border-2 border-blue-200 p-4 mb-4 shadow-hard-sm relative overflow-visible group rounded-2xl">
                         <div className="absolute -top-3 -right-2 bg-soviet-red text-white text-[9px] px-2 py-0.5 font-bold uppercase rotate-12 shadow-sm rounded border border-black/20 z-20 whitespace-nowrap min-w-[50px] text-center">{T.bonus}</div>
                         <div className="flex items-center gap-4">
-                            <div className="p-2 bg-soviet-gold border-2 border-black rounded-xl shadow-hard-sm group-hover:scale-110 transition-transform">
-                                <Film size={24} className="text-black" />
-                            </div>
+                            <div className="p-2 bg-soviet-gold border-2 border-black rounded-xl shadow-hard-sm group-hover:scale-110 transition-transform"><Film size={24} className="text-black" /></div>
                             <div className="flex-1 text-left">
                                 <h4 className="font-bold text-sm sm:text-base leading-tight uppercase tracking-tight">{T.earn_stars}</h4>
                                 <p className="text-[9px] sm:text-[10px] text-gray-500 leading-tight">{T.watch_ad_desc}</p>
                             </div>
-                            <button 
-                                onClick={handleEarnStarsAd}
-                                className="px-3 py-1.5 bg-soviet-green text-white border-2 border-black font-bold text-xs shadow-hard-sm active:translate-y-0.5 active:shadow-none rounded-lg"
-                            >
-                                {T.earn}
-                            </button>
+                            <button onClick={handleEarnStarsAd} className="px-3 py-1.5 bg-soviet-green text-white border-2 border-black font-bold text-xs shadow-hard-sm active:translate-y-0.5 active:shadow-none rounded-lg">{T.earn}</button>
                         </div>
                     </div>
-                    
                     <div className="space-y-3 mb-6 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
                         {SHOP_ITEMS.map(item => (
                             <div key={item.id} className="flex items-center gap-4 bg-[#f8f8f8] border-2 border-black/5 p-3 rounded-2xl shadow-sm hover:translate-x-1 transition-transform">
-                                <div className="p-2.5 bg-soviet-cream border-2 border-black rounded-xl">
-                                    <item.icon size={22} className="text-soviet-red" />
-                                </div>
+                                <div className="p-2.5 bg-soviet-cream border-2 border-black rounded-xl"><item.icon size={22} className="text-soviet-red" /></div>
                                 <div className="flex-1 text-left">
                                     <h4 className="font-bold text-base leading-none uppercase">{item.name[lang]}</h4>
                                     <p className="text-[10px] text-gray-500">{item.desc[lang]}</p>
                                 </div>
-                                <button 
-                                    disabled={stats.totalStars < item.price}
-                                    onClick={() => handlePurchase(item)}
-                                    className={`px-3 py-1.5 border-2 border-black font-bold text-xs shadow-hard-sm active:shadow-none active:translate-y-0.5 rounded-lg ${stats.totalStars >= item.price ? 'bg-soviet-gold hover:bg-yellow-400' : 'bg-gray-200 opacity-50 cursor-not-allowed'}`}
-                                >
-                                    {item.price} ⭐
-                                </button>
+                                <button disabled={stats.totalStars < item.price} onClick={() => handlePurchase(item)} className={`px-3 py-1.5 border-2 border-black font-bold text-xs shadow-hard-sm active:shadow-none active:translate-y-0.5 rounded-lg ${stats.totalStars >= item.price ? 'bg-soviet-gold hover:bg-yellow-400' : 'bg-gray-200 opacity-50 cursor-not-allowed'}`}>{item.price} ⭐</button>
                             </div>
                         ))}
                     </div>
-
-                    <Button fullWidth variant="secondary" onClick={() => setGameState('menu')} rounded>
-                        <Home size={20} /> {T.menu}
-                    </Button>
+                    <Button fullWidth variant="secondary" onClick={() => setGameState('menu')} rounded><Home size={20} /> {T.menu}</Button>
                 </div>
             </div>
         );
@@ -484,19 +447,12 @@ export default function App() {
                     <div className="bg-soviet-cream border-2 border-black p-4 mb-6 text-center shadow-hard-sm rounded-3xl">
                         <p className="text-[9px] uppercase tracking-[0.3em] text-gray-500 font-bold mb-1">{T.your_score}</p>
                         <p className="text-5xl font-bold text-soviet-red drop-shadow-[2px_2px_0_rgba(0,0,0,0.1)]">{score}</p>
-                        <div className="mt-3 flex justify-center items-center gap-2 font-bold bg-soviet-gold px-3 py-1 border-2 border-black shadow-hard-sm inline-flex rounded-full">
-                             <span>+{stars}</span> <Star size={16} fill="black" />
-                        </div>
+                        <div className="mt-3 flex justify-center items-center gap-2 font-bold bg-soviet-gold px-3 py-1 border-2 border-black shadow-hard-sm inline-flex rounded-full"><span>+{stars}</span> <Star size={16} fill="black" /></div>
                     </div>
                     <p className="text-center mb-6 italic font-serif text-gray-600 leading-relaxed px-4 text-sm">{T.gameover_msg}</p>
                     <div className="space-y-4">
-                        <Button fullWidth rounded onClick={handleRevive} className="py-4 text-lg">
-                             <Play size={24} fill="currentColor" /> {T.revive}
-                             <span className="text-[9px] bg-black/10 px-1 rounded ml-1 font-normal opacity-70 tracking-tighter uppercase">AD</span>
-                        </Button>
-                        <Button fullWidth rounded variant="secondary" onClick={goMenu}>
-                            <Home size={20} /> {T.menu}
-                        </Button>
+                        <Button fullWidth rounded onClick={handleRevive} className="py-4 text-lg"><Play size={24} fill="currentColor" /> {T.revive}<span className="text-[9px] bg-black/10 px-1 rounded ml-1 font-normal opacity-70 tracking-tighter uppercase">AD</span></Button>
+                        <Button fullWidth rounded variant="secondary" onClick={goMenu}><Home size={20} /> {T.menu}</Button>
                     </div>
                  </div>
             </div>
@@ -507,26 +463,16 @@ export default function App() {
         return (
             <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-cream paper-texture font-oswald overflow-hidden">
                 <div className={`max-w-md w-full bg-white border-4 border-black p-5 shadow-hard-lg relative animate-slide-up rounded-[32px] ${isWrong ? 'animate-shake' : ''}`}>
-                    <div className={`absolute -top-5 left-1/2 -translate-x-1/2 px-8 py-1.5 border-2 border-black font-ruslan text-2xl shadow-hard rounded-full ${lastResult.correct ? 'bg-soviet-green text-white rotate-1' : 'bg-soviet-red text-white -rotate-1'}`}>
-                        {lastResult.correct ? T.correct : T.wrong}
-                    </div>
+                    <div className={`absolute -top-5 left-1/2 -translate-x-1/2 px-8 py-1.5 border-2 border-black font-ruslan text-2xl shadow-hard rounded-full ${lastResult.correct ? 'bg-soviet-green text-white rotate-1' : 'bg-soviet-red text-white -rotate-1'}`}>{lastResult.correct ? T.correct : T.wrong}</div>
                     <div className="mt-8 border-4 border-black bg-black rounded-[24px] overflow-hidden relative aspect-video shadow-inner-hard mb-4">
                         <img src={lastResult.correctItem.imageUrl} className="w-full h-full object-contain" />
-                        <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-red-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-widest animate-pulse">
-                            <div className="w-1 h-1 bg-white rounded-full"></div> REC
-                        </div>
+                        <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-red-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-widest animate-pulse"><div className="w-1 h-1 bg-white rounded-full"></div> REC</div>
                     </div>
                     <div className="text-center mb-6">
                         <h3 className="text-2xl font-bold text-soviet-dark mb-2 leading-tight uppercase tracking-tight">{lastResult.correctItem[lang].title}</h3>
-                        <div className="inline-block relative px-4">
-                             <p className="text-[11px] text-gray-700 italic font-serif py-2 border-y border-dashed border-gray-300">
-                                "{lastResult.correctItem[lang].desc}"
-                             </p>
-                        </div>
+                        <div className="inline-block relative px-4"><p className="text-[11px] text-gray-700 italic font-serif py-2 border-y border-dashed border-gray-300">"{lastResult.correctItem[lang].desc}"</p></div>
                     </div>
-                    <Button fullWidth rounded onClick={handleNextResult} className="py-3">
-                        {T.next} <Clapperboard size={18} />
-                    </Button>
+                    <Button fullWidth rounded onClick={handleNextResult} className="py-3">{T.next} <Clapperboard size={18} /></Button>
                 </div>
             </div>
         );
@@ -557,26 +503,19 @@ export default function App() {
                              ))}
                         </div>
                     </div>
-                    <button onClick={togglePause} className="bg-soviet-cream border-2 border-black p-2 hover:bg-white active:scale-90 shadow-hard-sm rounded-full">
-                        <Settings size={20} className="text-soviet-dark" />
-                    </button>
+                    <button onClick={togglePause} className="bg-soviet-cream border-2 border-black p-2 hover:bg-white active:scale-90 shadow-hard-sm rounded-full"><Settings size={20} className="text-soviet-dark" /></button>
                 </div>
             </div>
-
             <div className="flex-1 flex flex-col items-center p-3 w-full max-w-lg mx-auto relative z-0">
                 {currentQuestion && (
                     <div className={`w-full space-y-4 sm:space-y-6 ${isWrong ? 'animate-shake' : ''}`}>
-                         <div className="w-full">
-                             <TVFrame imageUrl={currentQuestion.imageUrl} label={T.tv_brand} />
-                         </div>
-
+                         <div className="w-full"><TVFrame imageUrl={currentQuestion.imageUrl} label={T.tv_brand} /></div>
                          <div className="relative transform -rotate-1 max-w-fit mx-auto scale-90">
                              <div className="absolute inset-0 bg-black translate-x-1 translate-y-1 rounded-lg"></div>
                              <div className="relative bg-white border-2 border-black px-6 py-2 rounded-lg">
                                  <span className="font-bold tracking-[0.2em] text-soviet-dark text-sm block text-center uppercase whitespace-nowrap">{T.question}</span>
                              </div>
                          </div>
-
                          <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full pb-6">
                              {options.map((opt, idx) => {
                                  const isSelected = selectedId === opt.id;
@@ -585,19 +524,12 @@ export default function App() {
                                  if (isSelected) { variant = isCorrect ? "correct" : "wrong"; }
                                  return (
                                      <Button 
-                                        key={opt.id} 
-                                        rounded
-                                        variant={variant}
-                                        disabled={!!selectedId}
+                                        key={opt.id} rounded variant={variant} disabled={!!selectedId}
                                         className={`min-h-[60px] sm:min-h-[72px] text-[10px] sm:text-xs leading-tight normal-case text-left pl-3 sm:pl-6 flex justify-start items-center border-none ${!selectedId ? 'hover:scale-[1.02]' : ''}`}
                                         onClick={() => handleAnswer(opt)}
                                      >
-                                         <span className={`font-bold mr-1.5 sm:mr-3 text-lg sm:text-xl font-ruslan ${isSelected ? 'text-white' : 'text-soviet-red opacity-80'}`}>
-                                             {idx + 1}.
-                                         </span>
-                                         <span className="font-oswald font-bold uppercase tracking-tight line-clamp-2">
-                                             {opt[lang].title}
-                                         </span>
+                                         <span className={`font-bold mr-1.5 sm:mr-3 text-lg sm:text-xl font-ruslan ${isSelected ? 'text-white' : 'text-soviet-red opacity-80'}`}>{idx + 1}.</span>
+                                         <span className="font-oswald font-bold uppercase tracking-tight line-clamp-2">{opt[lang].title}</span>
                                      </Button>
                                  );
                              })}
@@ -605,20 +537,13 @@ export default function App() {
                     </div>
                 )}
             </div>
-
             {gameState === 'paused' && (
                 <div className="fixed inset-0 bg-soviet-dark/90 z-[100] flex items-center justify-center p-4">
                     <div className="bg-soviet-cream p-8 border-4 border-black w-full max-w-xs shadow-hard-lg text-center relative rotate-1 rounded-[32px]">
-                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-soviet-red text-white px-8 py-2 font-ruslan tracking-widest text-2xl border-2 border-black shadow-hard-sm -rotate-2 rounded-full uppercase">
-                            {T.pause}
-                        </div>
+                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-soviet-red text-white px-8 py-2 font-ruslan tracking-widest text-2xl border-2 border-black shadow-hard-sm -rotate-2 rounded-full uppercase">{T.pause}</div>
                         <div className="space-y-4 mt-6">
-                            <Button fullWidth rounded onClick={togglePause} variant="primary" className="py-4">
-                                <Play size={24} fill="currentColor" /> {T.resume}
-                            </Button>
-                            <Button fullWidth rounded onClick={goMenu} variant="secondary">
-                                <Home size={20} /> {T.menu}
-                            </Button>
+                            <Button fullWidth rounded onClick={togglePause} variant="primary" className="py-4"><Play size={24} fill="currentColor" /> {T.resume}</Button>
+                            <Button fullWidth rounded onClick={goMenu} variant="secondary"><Home size={20} /> {T.menu}</Button>
                         </div>
                     </div>
                 </div>
