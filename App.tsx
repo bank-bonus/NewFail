@@ -22,7 +22,7 @@ const SHOP_ITEMS: ShopItem[] = [
     { id: 'shield', icon: Shield, price: 0, name: { ru: 'Защита', en: 'Shield', tr: 'Kalkan' }, desc: { ru: '+1 жизнь на одну игру', en: '+1 life for one game', tr: 'Bir oyun için +1 can' }, type: 'powerup' },
     { id: 'boost', icon: Zap, price: 100, name: { ru: 'Буст x2', en: 'Boost x2', tr: 'Takviye x2' }, desc: { ru: 'x2 звезды на одну игру', en: 'x2 stars for one game', tr: 'Bir oyun для x2 yıldız' }, type: 'powerup' },
     { id: 'master', icon: Award, price: 500, name: { ru: 'Знаток', en: 'Master', tr: 'Usta' }, desc: { ru: 'Золотой телевизор', en: 'Gold TV Frame', tr: 'Altın TV Çerçevesi' }, type: 'skin' },
-    { id: 'tv_red', icon: Tv, price: 200, name: { ru: 'Красный ТВ', en: 'Red TV', tr: 'Kırmızı TV' }, desc: { ru: 'Красный корпус', en: 'Red body', tr: 'Kırmızı gövde' }, type: 'skin' },
+    { id: 'tv_red', icon: Tv, price: 200, name: { ru: 'Красный ТВ', en: 'Red TV', tr: 'Kırmızı TV' }, desc: { ru: 'Красный корпус', en: 'Red body', tr: 'Kırmızı göвде' }, type: 'skin' },
     { id: 'tv_silver', icon: Palette, price: 300, name: { ru: 'Серебряный ТВ', en: 'Silver TV', tr: 'Gümüş TV' }, desc: { ru: 'Металлический блеск', en: 'Silver body', tr: 'Gümüş göвде' }, type: 'skin' }
 ];
 
@@ -35,7 +35,6 @@ const AdBanner: React.FC = () => {
         }).catch(err => console.debug('Banner Ad failed', err));
     }, []);
 
-    // Увеличиваем отступ, чтобы баннер не перекрывал важные элементы
     return <div className="h-[75px] w-full shrink-0" />;
 };
 
@@ -60,11 +59,13 @@ const Button: React.FC<{
     fullWidth?: boolean;
     rounded?: boolean;
     noBorder?: boolean;
-}> = ({ children, onClick, variant = 'primary', className = '', disabled = false, fullWidth = false, rounded = false, noBorder = false }) => {
-    // Используем rounded-full для лучшей формы, если выбрано округление
-    // Удаляем border-black если noBorder=true, чтобы убрать "рябь" на границах
-    const baseStyle = `relative font-oswald uppercase tracking-widest font-bold py-3.5 px-6 transition-all transform active:translate-y-[2px] flex items-center justify-center gap-3 z-10 ${rounded ? 'rounded-full' : 'rounded-lg'} ${noBorder ? '' : 'border-2 border-black'}`;
-    const shadowStyle = disabled ? "" : "shadow-[0_4px_0_0_rgba(0,0,0,0.2)]";
+    softShadow?: boolean;
+}> = ({ children, onClick, variant = 'primary', className = '', disabled = false, fullWidth = false, rounded = false, noBorder = false, softShadow = false }) => {
+    const baseStyle = `relative font-oswald uppercase tracking-widest font-bold py-3.5 px-6 transition-all transform active:translate-y-[2px] flex items-center justify-center gap-3 z-10 ${rounded ? 'rounded-2xl' : 'rounded-lg'} ${noBorder ? '' : 'border-2 border-black'}`;
+    
+    // Мягкая тень для устранения "ряби" и "выпирающих" линий
+    const shadowStyle = disabled ? "" : (softShadow ? "shadow-lg shadow-black/10" : "shadow-[0_4px_0_0_rgba(0,0,0,0.15)]");
+    
     const variants = {
         primary: "bg-soviet-red text-white",
         secondary: "bg-soviet-gold text-soviet-dark",
@@ -508,14 +509,15 @@ export default function App() {
                     </div>
                     <p className="text-center mb-5 italic font-serif text-gray-600 leading-relaxed px-4 text-xs">{T.gameover_msg}</p>
                     <div className="space-y-3.5">
-                        <Button fullWidth rounded variant="accent" onClick={handleAdRevive} className="py-4.5 text-base animate-float shadow-[0_4px_0_0_rgba(0,0,0,0.2)]" noBorder>
+                        {/* Исправлена кнопка Жизнь за рекламу: softShadow=true, rounded=true, noBorder=true */}
+                        <Button fullWidth rounded variant="accent" onClick={handleAdRevive} className="py-4.5 text-base" noBorder softShadow>
                             <MonitorPlay size={22} /> {T.revive_ad}
                         </Button>
-                        {/* Исправленная кнопка "Заново": округлена rounded-full, убрана обводка noBorder */}
-                        <Button fullWidth rounded onClick={startGame} className="py-4.5 text-lg shadow-[0_4px_0_0_rgba(0,0,0,0.2)]" noBorder>
+                        {/* Исправлена кнопка Заново: softShadow=true, rounded=true, noBorder=true */}
+                        <Button fullWidth rounded onClick={startGame} className="py-4.5 text-lg" noBorder softShadow>
                             <RotateCcw size={22} /> {T.revive}
                         </Button>
-                        <Button fullWidth rounded variant="secondary" onClick={goMenu} className="py-4 shadow-[0_4px_0_0_rgba(0,0,0,0.2)]" noBorder><Home size={18} /> {T.menu}</Button>
+                        <Button fullWidth rounded variant="secondary" onClick={goMenu} className="py-4" noBorder softShadow><Home size={18} /> {T.menu}</Button>
                     </div>
                  </div>
                  <AdBanner />
@@ -571,7 +573,6 @@ export default function App() {
                     <button onClick={togglePause} className="bg-soviet-cream border-2 border-black p-1.5 hover:bg-white active:scale-90 shadow-hard-sm rounded-full"><Settings size={18} className="text-soviet-dark" /></button>
                 </div>
             </div>
-            {/* flex-1 с justify-center для центрирования и предотвращения "вылета" вверх */}
             <div className="flex-1 flex flex-col items-center justify-center p-3 w-full max-w-lg mx-auto relative z-0 overflow-hidden">
                 {currentQuestion && (
                     <div className={`w-full flex flex-col items-center space-y-4 sm:space-y-6 ${isWrong ? 'animate-shake' : ''}`}>
@@ -579,12 +580,11 @@ export default function App() {
                              <TVFrame imageUrl={currentQuestion.imageUrl} label={T.tv_brand} skin={activeTvSkin} />
                              {activePowerups.size > 0 && (
                                 <div className="mt-2 flex gap-1.5">
-                                    {activePowerups.has('shield') && <div className="bg-soviet-green text-white text-[8px] px-2 py-0.5 rounded-full border border-black shadow-sm font-bold uppercase tracking-tight animate-float">Защита +1</div>}
-                                    {activePowerups.has('boost') && <div className="bg-soviet-gold text-soviet-dark text-[8px] px-2 py-0.5 rounded-full border border-black shadow-sm font-bold uppercase tracking-tight animate-float">Звезды x2</div>}
+                                    {activePowerups.has('shield') && <div className="bg-soviet-green text-white text-[8px] px-2 py-0.5 rounded-full border border-black shadow-sm font-bold uppercase tracking-tight">Защита +1</div>}
+                                    {activePowerups.has('boost') && <div className="bg-soviet-gold text-soviet-dark text-[8px] px-2 py-0.5 rounded-full border border-black shadow-sm font-bold uppercase tracking-tight">Звезды x2</div>}
                                 </div>
                              )}
                          </div>
-                         {/* Заголовок вопроса "Откуда это?" исправлен: убрана тень, добавлен простой border для предотвращения ряби */}
                          <div className="relative max-w-fit mx-auto scale-90 shrink-0">
                              <div className="relative bg-white px-8 py-2 border-2 border-black rounded-xl shadow-sm">
                                  <span className="font-bold tracking-[0.2em] text-soviet-dark text-xs block text-center uppercase whitespace-nowrap">{T.question}</span>
