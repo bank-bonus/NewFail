@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import vkBridge from '@vkontakte/vk-bridge';
 import { CARTOONS, TRANSLATIONS } from './data';
 import { Cartoon, GameState, Language, PlayerStats } from './types';
-import { Play, Home, RotateCcw, ShoppingCart, Heart, Star, Settings, Clapperboard, Award, Shield, Zap, Tv, Film, Trophy, CheckCircle2, Info, Camera, Palette, MonitorPlay } from 'lucide-react';
+import { Play, Home, RotateCcw, ShoppingCart, Heart, Star, Settings, Clapperboard, Award, Shield, Zap, Tv, Film, Trophy, Info, Camera, Palette, MonitorPlay } from 'lucide-react';
 
 // --- Types ---
 
@@ -20,10 +20,10 @@ interface ShopItem {
 
 const SHOP_ITEMS: ShopItem[] = [
     { id: 'shield', icon: Shield, price: 0, name: { ru: 'Защита', en: 'Shield', tr: 'Kalkan' }, desc: { ru: '+1 жизнь на одну игру', en: '+1 life for one game', tr: 'Bir oyun için +1 can' }, type: 'powerup' },
-    { id: 'boost', icon: Zap, price: 100, name: { ru: 'Буст x2', en: 'Boost x2', tr: 'Takviye x2' }, desc: { ru: 'x2 звезды на одну игру', en: 'x2 stars for one game', tr: 'Bir oyun için x2 yıldız' }, type: 'powerup' },
-    { id: 'master', icon: Award, price: 500, name: { ru: 'Знаток', en: 'Master', tr: 'Usta' }, desc: { ru: 'Золотой телевизор', en: 'Gold TV Frame', tr: 'Altın TV Чerçevesи' }, type: 'skin' },
-    { id: 'tv_red', icon: Tv, price: 200, name: { ru: 'Красный ТВ', en: 'Red TV', tr: 'Kırmızı TV' }, desc: { ru: 'Красный корпус', en: 'Red body', tr: 'Kırmızı göвде' }, type: 'skin' },
-    { id: 'tv_silver', icon: Palette, price: 300, name: { ru: 'Серебряный ТВ', en: 'Silver TV', tr: 'Gümüş ТВ' }, desc: { ru: 'Металлический блеск', en: 'Silver body', tr: 'Gümüş göвде' }, type: 'skin' }
+    { id: 'boost', icon: Zap, price: 100, name: { ru: 'Буст x2', en: 'Boost x2', tr: 'Takviye x2' }, desc: { ru: 'x2 звезды на одну игру', en: 'x2 stars for one game', tr: 'Bir oyun для x2 yıldız' }, type: 'powerup' },
+    { id: 'master', icon: Award, price: 500, name: { ru: 'Знаток', en: 'Master', tr: 'Usta' }, desc: { ru: 'Золотой телевизор', en: 'Gold TV Frame', tr: 'Altın TV Çerçevesi' }, type: 'skin' },
+    { id: 'tv_red', icon: Tv, price: 200, name: { ru: 'Красный ТВ', en: 'Red TV', tr: 'Kırmızı TV' }, desc: { ru: 'Красный корпус', en: 'Red body', tr: 'Kırmızı gövde' }, type: 'skin' },
+    { id: 'tv_silver', icon: Palette, price: 300, name: { ru: 'Серебряный ТВ', en: 'Silver TV', tr: 'Gümüş TV' }, desc: { ru: 'Металлический блеск', en: 'Silver body', tr: 'Gümüş göвде' }, type: 'skin' }
 ];
 
 // --- Components ---
@@ -32,10 +32,11 @@ const AdBanner: React.FC = () => {
     useEffect(() => {
         vkBridge.send('VKWebAppShowBannerAd', {
             banner_location: 'bottom'
-        }).catch(err => console.debug('Banner Ad failed or not supported', err));
+        }).catch(err => console.debug('Banner Ad failed', err));
     }, []);
 
-    return <div className="h-[70px] w-full pointer-events-none" />;
+    // Увеличиваем отступ, чтобы баннер не перекрывал важные элементы
+    return <div className="h-[75px] w-full shrink-0" />;
 };
 
 const Toast: React.FC<{ message: string | null }> = ({ message }) => {
@@ -60,14 +61,16 @@ const Button: React.FC<{
     rounded?: boolean;
     noBorder?: boolean;
 }> = ({ children, onClick, variant = 'primary', className = '', disabled = false, fullWidth = false, rounded = false, noBorder = false }) => {
-    const baseStyle = `relative font-oswald uppercase tracking-widest font-bold py-3 px-6 transition-all transform active:translate-y-[4px] active:shadow-none flex items-center justify-center gap-3 z-10 ${rounded ? 'rounded-2xl' : ''} ${noBorder ? '' : 'border-2 border-black'}`;
-    const shadowStyle = disabled ? "shadow-none" : "shadow-[0_4px_0_0_rgba(0,0,0,0.2)]";
+    // Используем rounded-full для лучшей формы, если выбрано округление
+    // Удаляем border-black если noBorder=true, чтобы убрать "рябь" на границах
+    const baseStyle = `relative font-oswald uppercase tracking-widest font-bold py-3.5 px-6 transition-all transform active:translate-y-[2px] flex items-center justify-center gap-3 z-10 ${rounded ? 'rounded-full' : 'rounded-lg'} ${noBorder ? '' : 'border-2 border-black'}`;
+    const shadowStyle = disabled ? "" : "shadow-[0_4px_0_0_rgba(0,0,0,0.2)]";
     const variants = {
         primary: "bg-soviet-red text-white",
         secondary: "bg-soviet-gold text-soviet-dark",
         accent: "bg-soviet-green text-white",
         danger: "bg-gray-800 text-gray-300",
-        correct: "bg-soviet-green text-white scale-105",
+        correct: "bg-soviet-green text-white",
         wrong: "bg-soviet-red text-white animate-shake"
     };
     return (
@@ -91,20 +94,20 @@ const TVFrame: React.FC<{ imageUrl: string; label: string; skin?: string }> = ({
     };
     const isMetallic = skin === 'master' || skin === 'tv_silver';
     return (
-        <div className="relative w-full max-w-[90vw] sm:max-w-md mx-auto z-10 animate-slide-up">
-            <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-32 h-12 pointer-events-none opacity-40">
-                <div className="absolute bottom-0 left-4 w-0.5 h-10 bg-gray-600 rotate-[-25deg] origin-bottom"></div>
-                <div className="absolute bottom-0 right-4 w-0.5 h-10 bg-gray-600 rotate-[25deg] origin-bottom"></div>
+        <div className="relative w-full max-w-[85vw] sm:max-w-md mx-auto z-10 animate-slide-up shrink-0">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-32 h-10 pointer-events-none opacity-40">
+                <div className="absolute bottom-0 left-4 w-0.5 h-8 bg-gray-600 rotate-[-25deg] origin-bottom"></div>
+                <div className="absolute bottom-0 right-4 w-0.5 h-8 bg-gray-600 rotate-[25deg] origin-bottom"></div>
             </div>
-            <div className={`${getSkinStyles()} p-3 sm:p-4 rounded-xl border-4 shadow-hard-lg relative`}>
+            <div className={`${getSkinStyles()} p-2 sm:p-4 rounded-xl border-4 shadow-hard-lg relative`}>
                 <div className="flex gap-2 sm:gap-4 items-stretch">
                     <div className="flex-1 aspect-[4/3] bg-black rounded-lg border-2 border-black relative overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,1)]">
                         <img src={imageUrl} alt="Quiz" className="w-full h-full object-cover relative z-10 sepia-[0.1] contrast-110" />
                         <div className="absolute inset-0 z-20 pointer-events-none scanlines opacity-30"></div>
                     </div>
-                    <div className={`flex flex-col gap-1.5 w-8 sm:w-12 items-center justify-start ${isMetallic ? 'bg-black/20' : 'bg-[#1a110a]'} rounded p-1 border border-black/30`}>
-                         <div className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
-                         <div className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
+                    <div className={`flex flex-col gap-1 w-6 sm:w-12 items-center justify-start ${isMetallic ? 'bg-black/20' : 'bg-[#1a110a]'} rounded p-1 border border-black/30`}>
+                         <div className="w-4 h-4 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
+                         <div className="w-4 h-4 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
                          <div className="w-full flex-1 flex flex-col gap-1 mt-1 px-0.5 opacity-60">
                             {[...Array(6)].map((_,i) => <div key={i} className="w-full h-0.5 bg-black/80 rounded-full"></div>)}
                          </div>
@@ -375,39 +378,39 @@ export default function App() {
 
     if (gameState === 'menu') {
         return (
-            <div className="h-screen w-full flex flex-col items-center justify-center p-6 relative overflow-hidden pb-[100px]">
+            <div className="h-screen w-full flex flex-col items-center justify-center p-6 relative overflow-hidden pb-[env(safe-area-inset-bottom)]">
                 <Toast message={toast} />
-                <div className="max-w-md w-full bg-white border-[6px] border-soviet-dark rounded-[40px] shadow-menu-card relative overflow-hidden flex flex-col items-center p-8 animate-slide-up">
+                <div className="max-w-md w-full bg-white border-[6px] border-soviet-dark rounded-[40px] shadow-menu-card relative overflow-hidden flex flex-col items-center p-6 sm:p-8 animate-slide-up">
                     <div className="absolute top-0 inset-x-0 h-4 bg-soviet-red"></div>
-                    <div className="mt-6 mb-8 text-center relative w-full flex flex-col items-center">
-                        <div className="absolute top-2 left-2 opacity-10 -rotate-12"><Film size={48} className="text-soviet-red" /></div>
-                        <div className="absolute bottom-2 right-2 opacity-10 rotate-12"><Film size={48} className="text-soviet-red" /></div>
-                        <div className="font-ruslan text-[44px] sm:text-[56px] leading-[0.85] text-soviet-red flex flex-col items-center drop-shadow-sm uppercase">
+                    <div className="mt-4 mb-6 text-center relative w-full flex flex-col items-center">
+                        <div className="absolute top-2 left-2 opacity-10 -rotate-12"><Film size={40} className="text-soviet-red" /></div>
+                        <div className="absolute bottom-2 right-2 opacity-10 rotate-12"><Film size={40} className="text-soviet-red" /></div>
+                        <div className="font-ruslan text-[40px] sm:text-[56px] leading-[0.85] text-soviet-red flex flex-col items-center drop-shadow-sm uppercase">
                             <span>СОЮЗ</span><span className="relative z-10">МУЛЬТ</span><span>КВИЗ</span>
                         </div>
                     </div>
-                    <div className="w-full flex items-center justify-center gap-3 mb-8 opacity-70">
+                    <div className="w-full flex items-center justify-center gap-3 mb-6 opacity-70">
                          <div className="h-[1px] bg-gray-300 flex-1"></div>
                          <div className="flex items-center gap-2">
                             <Tv size={14} className="text-soviet-dark" />
-                            <span className="font-oswald font-bold text-xs sm:text-sm text-soviet-dark tracking-[0.15em] uppercase whitespace-nowrap">{T.subtitle}</span>
+                            <span className="font-oswald font-bold text-xs text-soviet-dark tracking-[0.15em] uppercase whitespace-nowrap">{T.subtitle}</span>
                             <Tv size={14} className="text-soviet-dark" />
                          </div>
                          <div className="h-[1px] bg-gray-300 flex-1"></div>
                     </div>
-                    <div className="flex gap-4 mb-8 w-full justify-center">
-                        <div className="bg-[#fdf3cc] border-2 border-[#e6d8a2] rounded-[20px] px-4 py-3 flex flex-col items-center relative flex-1">
-                             <div className="flex items-center gap-2 text-soviet-dark/60"><Trophy size={14} /> <span className="text-[10px] font-bold uppercase tracking-widest">{T.record}</span></div>
-                             <span className="text-xl font-bold text-soviet-dark">{stats.highScore}</span>
+                    <div className="flex gap-4 mb-6 w-full justify-center">
+                        <div className="bg-[#fdf3cc] border-2 border-[#e6d8a2] rounded-[20px] px-3 py-2 flex flex-col items-center relative flex-1 shadow-sm">
+                             <div className="flex items-center gap-2 text-soviet-dark/60"><Trophy size={12} /> <span className="text-[9px] font-bold uppercase tracking-widest">{T.record}</span></div>
+                             <span className="text-lg font-bold text-soviet-dark">{stats.highScore}</span>
                         </div>
-                        <div className="bg-[#fdf3cc] border-2 border-[#e6d8a2] rounded-[20px] px-4 py-3 flex flex-col items-center relative flex-1">
-                             <div className="flex items-center gap-2 text-soviet-dark/60"><Star size={14} fill="currentColor" /> <span className="text-[10px] font-bold uppercase tracking-widest">{T.stars}</span></div>
-                             <span className="text-xl font-bold text-soviet-dark">{stats.totalStars}</span>
+                        <div className="bg-[#fdf3cc] border-2 border-[#e6d8a2] rounded-[20px] px-3 py-2 flex flex-col items-center relative flex-1 shadow-sm">
+                             <div className="flex items-center gap-2 text-soviet-dark/60"><Star size={12} fill="currentColor" /> <span className="text-[9px] font-bold uppercase tracking-widest">{T.stars}</span></div>
+                             <span className="text-lg font-bold text-soviet-dark">{stats.totalStars}</span>
                         </div>
                     </div>
-                    <div className="w-full space-y-4 px-2">
-                        <Button fullWidth rounded onClick={startGame} className="py-5 text-xl sm:text-2xl tracking-[0.1em]"><Play size={24} fill="currentColor" /> {T.start}</Button>
-                        <Button fullWidth rounded variant="secondary" onClick={() => setGameState('shop')} className="py-5 text-lg sm:text-xl tracking-[0.1em] border-none"><ShoppingCart size={24} /> {T.shop}</Button>
+                    <div className="w-full space-y-3 px-2">
+                        <Button fullWidth rounded onClick={startGame} className="py-4 text-lg sm:text-2xl tracking-[0.1em]"><Play size={20} fill="currentColor" /> {T.start}</Button>
+                        <Button fullWidth rounded variant="secondary" onClick={() => setGameState('shop')} className="py-4 text-base sm:text-xl tracking-[0.1em] border-none"><ShoppingCart size={20} /> {T.shop}</Button>
                     </div>
                     <div className="absolute bottom-0 inset-x-0 h-2 bg-soviet-red opacity-80"></div>
                 </div>
@@ -418,28 +421,28 @@ export default function App() {
 
     if (gameState === 'shop') {
         return (
-            <div className="h-screen w-full flex flex-col items-center justify-center p-4 font-oswald paper-texture overflow-hidden pb-[100px]">
+            <div className="h-screen w-full flex flex-col items-center justify-center p-4 font-oswald paper-texture overflow-hidden pb-[env(safe-area-inset-bottom)]">
                 <Toast message={toast} />
                 <div className="max-w-md w-full bg-white border-4 border-soviet-dark p-6 rounded-[32px] shadow-hard-lg relative animate-slide-up">
-                    <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-soviet-red text-soviet-cream px-8 py-2 border-2 border-black shadow-hard font-bold tracking-widest -rotate-1 text-xl rounded-full uppercase">{T.shop_title}</div>
-                    <div className="mt-8 flex justify-between items-center mb-6 border-b-2 border-dashed border-black/10 pb-4">
-                        <span className="font-ruslan text-2xl text-soviet-dark">{T.stars}</span>
-                        <span className="font-bold text-xl bg-soviet-gold border-2 border-black px-4 py-1.5 flex items-center gap-2 shadow-hard-sm animate-wobble rounded-full">{stats.totalStars} <Star size={20} fill="black" /></span>
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-soviet-red text-soviet-cream px-8 py-1.5 border-2 border-black shadow-hard font-bold tracking-widest -rotate-1 text-lg rounded-full uppercase">{T.shop_title}</div>
+                    <div className="mt-6 flex justify-between items-center mb-5 border-b-2 border-dashed border-black/10 pb-4">
+                        <span className="font-ruslan text-xl text-soviet-dark">{T.stars}</span>
+                        <span className="font-bold text-lg bg-soviet-gold border-2 border-black px-4 py-1 flex items-center gap-2 shadow-hard-sm animate-wobble rounded-full">{stats.totalStars} <Star size={18} fill="black" /></span>
                     </div>
                     
-                    <div className="bg-[#fff9e6] border-2 border-yellow-400 p-4 mb-4 shadow-hard-sm relative overflow-visible group rounded-2xl">
+                    <div className="bg-[#fff9e6] border-2 border-yellow-400 p-3 mb-3 shadow-hard-sm relative overflow-visible group rounded-2xl">
                         <div className="absolute -top-3 -right-2 bg-soviet-red text-white text-[9px] px-2 py-0.5 font-bold uppercase rotate-12 shadow-sm rounded border border-black/20 z-20 whitespace-nowrap min-w-[50px] text-center">{T.bonus}</div>
-                        <div className="flex items-center gap-4">
-                            <div className="p-2 bg-soviet-gold border-2 border-black rounded-xl shadow-hard-sm group-hover:scale-110 transition-transform"><Camera size={24} className="text-black" /></div>
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-soviet-gold border-2 border-black rounded-xl shadow-hard-sm group-hover:scale-110 transition-transform"><Camera size={20} className="text-black" /></div>
                             <div className="flex-1 text-left">
-                                <h4 className="font-bold text-sm sm:text-base leading-tight uppercase tracking-tight">{T.earn_stars}</h4>
-                                <p className="text-[9px] sm:text-[10px] text-gray-500 leading-tight">{T.watch_ad_desc}</p>
+                                <h4 className="font-bold text-sm leading-tight uppercase tracking-tight">{T.earn_stars}</h4>
+                                <p className="text-[9px] text-gray-500 leading-tight">{T.watch_ad_desc}</p>
                             </div>
-                            <button onClick={handleWatchCartoon} className="px-3 py-1.5 bg-soviet-green text-white border-2 border-black font-bold text-xs shadow-hard-sm active:translate-y-0.5 active:shadow-none rounded-lg">{T.earn}</button>
+                            <button onClick={handleWatchCartoon} className="px-3 py-1 bg-soviet-green text-white border-2 border-black font-bold text-xs shadow-hard-sm active:translate-y-0.5 active:shadow-none rounded-lg">{T.earn}</button>
                         </div>
                     </div>
 
-                    <div className="space-y-3 mb-6 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="space-y-2.5 mb-5 max-h-[35vh] overflow-y-auto pr-2 custom-scrollbar">
                         {SHOP_ITEMS.map(item => {
                             const isOwned = item.type === 'skin' ? purchasedSkins.has(item.id) : activePowerups.has(item.id);
                             const isActiveSkin = item.type === 'skin' && activeTvSkin === item.id;
@@ -450,20 +453,20 @@ export default function App() {
                             else if (isOwned) btnLabel = item.type === 'skin' ? "ВЫБРАТЬ" : "АКТИВНО";
 
                             return (
-                                <div key={item.id} className={`flex items-center gap-4 bg-[#f8f8f8] border-2 ${isActiveSkin ? 'border-soviet-gold shadow-md' : 'border-black/5'} p-3 rounded-2xl shadow-sm hover:translate-x-1 transition-transform`}>
-                                    <div className={`p-2.5 rounded-xl border-2 ${isActiveSkin ? 'bg-soviet-gold border-black' : 'bg-soviet-cream border-black/10'}`}>
-                                        <item.icon size={22} className={isActiveSkin ? 'text-black' : 'text-soviet-red'} />
+                                <div key={item.id} className={`flex items-center gap-3 bg-[#f8f8f8] border-2 ${isActiveSkin ? 'border-soviet-gold shadow-md' : 'border-black/5'} p-2.5 rounded-2xl shadow-sm hover:translate-x-1 transition-transform`}>
+                                    <div className={`p-2 rounded-xl border-2 ${isActiveSkin ? 'bg-soviet-gold border-black' : 'bg-soviet-cream border-black/10'}`}>
+                                        <item.icon size={20} className={isActiveSkin ? 'text-black' : 'text-soviet-red'} />
                                     </div>
                                     <div className="flex-1 text-left">
                                         <h4 className="font-bold text-sm leading-none uppercase">{item.name[lang]}</h4>
-                                        <p className="text-[10px] text-gray-100/50 leading-tight">{item.desc[lang]}</p>
+                                        <p className="text-[9px] text-gray-500 leading-tight mt-1">{item.desc[lang]}</p>
                                     </div>
                                     <div className="flex flex-col gap-1">
                                         {(!isShield || isOwned) && (
                                             <button 
                                                 disabled={stats.totalStars < item.price && !isOwned}
                                                 onClick={() => handlePurchase(item)}
-                                                className={`px-3 py-1.5 border-2 border-black font-bold text-[10px] shadow-hard-sm active:shadow-none active:translate-y-0.5 rounded-lg min-w-[70px] ${
+                                                className={`px-3 py-1.5 border-2 border-black font-bold text-[9px] shadow-hard-sm active:shadow-none active:translate-y-0.5 rounded-lg min-w-[60px] ${
                                                     isActiveSkin ? 'bg-soviet-green text-white' : 
                                                     isOwned ? (item.type === 'skin' ? 'bg-soviet-gold' : 'bg-soviet-green text-white cursor-default') :
                                                     (stats.totalStars >= item.price ? 'bg-white' : 'bg-gray-200 opacity-50')
@@ -475,9 +478,9 @@ export default function App() {
                                         {isShield && !isOwned && (
                                             <button 
                                                 onClick={() => handlePowerupByAd(item.id)}
-                                                className="px-4 py-2.5 bg-soviet-gold text-soviet-dark border-2 border-black font-bold text-[10px] rounded-xl shadow-hard-sm flex items-center justify-center gap-2 active:translate-y-0.5 active:shadow-none transition-all uppercase whitespace-nowrap"
+                                                className="px-3 py-2 bg-soviet-gold text-soviet-dark border-2 border-black font-bold text-[9px] rounded-xl shadow-hard-sm flex items-center justify-center gap-1.5 active:translate-y-0.5 active:shadow-none transition-all uppercase whitespace-nowrap"
                                             >
-                                                <MonitorPlay size={14} /> {T.free_via_ad}
+                                                <MonitorPlay size={12} /> {T.free_via_ad}
                                             </button>
                                         )}
                                     </div>
@@ -485,7 +488,7 @@ export default function App() {
                             );
                         })}
                     </div>
-                    <Button fullWidth variant="secondary" onClick={() => setGameState('menu')} rounded><Home size={20} /> {T.menu}</Button>
+                    <Button fullWidth variant="secondary" onClick={() => setGameState('menu')} rounded className="py-3.5"><Home size={18} /> {T.menu}</Button>
                 </div>
                 <AdBanner />
             </div>
@@ -494,24 +497,25 @@ export default function App() {
 
     if (gameState === 'gameover') {
         return (
-            <div className="h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-dark/95 font-oswald relative overflow-hidden pb-[140px]">
+            <div className="h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-dark/95 font-oswald relative overflow-hidden pb-[env(safe-area-inset-bottom)]">
                  <Toast message={toast} />
                  <div className="max-w-md w-full bg-white border-4 border-black p-6 shadow-2xl relative rotate-1 animate-slide-up rounded-[40px]">
-                    <h2 className="font-ruslan text-5xl mb-6 text-center text-soviet-dark drop-shadow-md uppercase">{T.gameover}</h2>
-                    <div className="bg-soviet-cream border-2 border-black p-4 mb-6 text-center shadow-hard-sm rounded-3xl">
+                    <h2 className="font-ruslan text-4xl mb-4 text-center text-soviet-dark drop-shadow-md uppercase">{T.gameover}</h2>
+                    <div className="bg-soviet-cream border-2 border-black p-4 mb-5 text-center shadow-hard-sm rounded-3xl">
                         <p className="text-[9px] uppercase tracking-[0.3em] text-gray-500 font-bold mb-1">{T.your_score}</p>
                         <p className="text-5xl font-bold text-soviet-red drop-shadow-[2px_2px_0_rgba(0,0,0,0.1)]">{score}</p>
-                        <div className="mt-3 flex justify-center items-center gap-2 font-bold bg-soviet-gold px-3 py-1 border-2 border-black shadow-hard-sm inline-flex rounded-full"><span>+{stars}</span> <Star size={16} fill="black" /></div>
+                        <div className="mt-2.5 flex justify-center items-center gap-2 font-bold bg-soviet-gold px-3 py-1 border-2 border-black shadow-hard-sm inline-flex rounded-full"><span>+{stars}</span> <Star size={16} fill="black" /></div>
                     </div>
-                    <p className="text-center mb-6 italic font-serif text-gray-600 leading-relaxed px-4 text-sm">{T.gameover_msg}</p>
-                    <div className="space-y-4">
-                        <Button fullWidth rounded variant="accent" onClick={handleAdRevive} className="py-5 text-base animate-float ring-4 ring-soviet-gold/40 shadow-[0_0_20px_rgba(244,196,48,0.4)]" noBorder>
-                            <MonitorPlay size={24} /> {T.revive_ad}
+                    <p className="text-center mb-5 italic font-serif text-gray-600 leading-relaxed px-4 text-xs">{T.gameover_msg}</p>
+                    <div className="space-y-3.5">
+                        <Button fullWidth rounded variant="accent" onClick={handleAdRevive} className="py-4.5 text-base animate-float shadow-[0_4px_0_0_rgba(0,0,0,0.2)]" noBorder>
+                            <MonitorPlay size={22} /> {T.revive_ad}
                         </Button>
-                        <Button fullWidth rounded onClick={startGame} className="py-4 text-lg" noBorder>
-                            <RotateCcw size={24} /> {T.revive}
+                        {/* Исправленная кнопка "Заново": округлена rounded-full, убрана обводка noBorder */}
+                        <Button fullWidth rounded onClick={startGame} className="py-4.5 text-lg shadow-[0_4px_0_0_rgba(0,0,0,0.2)]" noBorder>
+                            <RotateCcw size={22} /> {T.revive}
                         </Button>
-                        <Button fullWidth rounded variant="secondary" onClick={goMenu} noBorder><Home size={20} /> {T.menu}</Button>
+                        <Button fullWidth rounded variant="secondary" onClick={goMenu} className="py-4 shadow-[0_4px_0_0_rgba(0,0,0,0.2)]" noBorder><Home size={18} /> {T.menu}</Button>
                     </div>
                  </div>
                  <AdBanner />
@@ -521,16 +525,16 @@ export default function App() {
 
     if (gameState === 'result' && lastResult) {
         return (
-            <div className="h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-cream paper-texture font-oswald overflow-hidden pb-[100px]">
+            <div className="h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-cream paper-texture font-oswald overflow-hidden pb-[env(safe-area-inset-bottom)]">
                 <div className={`max-w-md w-full bg-white border-4 border-black p-5 shadow-hard-lg relative animate-slide-up rounded-[32px] ${isWrong ? 'animate-shake' : ''}`}>
-                    <div className={`absolute -top-5 left-1/2 -translate-x-1/2 px-8 py-1.5 border-2 border-black font-ruslan text-2xl shadow-hard rounded-full ${lastResult.correct ? 'bg-soviet-green text-white rotate-1' : 'bg-soviet-red text-white -rotate-1'}`}>{lastResult.correct ? T.correct : T.wrong}</div>
-                    <div className="mt-8 border-4 border-black bg-black rounded-[24px] overflow-hidden relative aspect-video shadow-inner-hard mb-4">
+                    <div className={`absolute -top-4 left-1/2 -translate-x-1/2 px-8 py-1.5 border-2 border-black font-ruslan text-2xl shadow-hard rounded-full ${lastResult.correct ? 'bg-soviet-green text-white rotate-1' : 'bg-soviet-red text-white -rotate-1'}`}>{lastResult.correct ? T.correct : T.wrong}</div>
+                    <div className="mt-8 border-2 border-black bg-black rounded-[20px] overflow-hidden relative aspect-video shadow-inner-hard mb-4">
                         <img src={lastResult.correctItem.imageUrl} className="w-full h-full object-contain" />
                         <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-red-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-widest animate-pulse"><div className="w-1 h-1 bg-white rounded-full"></div> REC</div>
                     </div>
-                    <div className="text-center mb-6">
-                        <h3 className="text-2xl font-bold text-soviet-dark mb-2 leading-tight uppercase tracking-tight">{lastResult.correctItem[lang].title}</h3>
-                        <div className="inline-block relative px-4"><p className="text-[11px] text-gray-700 italic font-serif py-2 border-y border-dashed border-gray-300">"{lastResult.correctItem[lang].desc}"</p></div>
+                    <div className="text-center mb-5">
+                        <h3 className="text-xl font-bold text-soviet-dark mb-2 leading-tight uppercase tracking-tight">{lastResult.correctItem[lang].title}</h3>
+                        <div className="inline-block relative px-3"><p className="text-[10px] text-gray-700 italic font-serif py-1.5 border-y border-dashed border-gray-300">"{lastResult.correctItem[lang].desc}"</p></div>
                     </div>
                     <Button fullWidth rounded onClick={handleNextResult} className="py-3">{T.next} <Clapperboard size={18} /></Button>
                 </div>
@@ -540,51 +544,53 @@ export default function App() {
     }
 
     return (
-        <div className="h-screen w-full flex flex-col bg-soviet-cream font-oswald relative paper-texture overflow-hidden pb-[100px]">
+        <div className="h-screen w-full flex flex-col bg-soviet-cream font-oswald relative paper-texture overflow-hidden pb-[env(safe-area-inset-bottom)]">
             <Toast message={toast} />
-            <div className="bg-soviet-red border-b-4 border-black p-2.5 pt-safe-top z-50 sticky top-0 shadow-hard w-full">
+            <div className="bg-soviet-red border-b-2 border-black p-2 pt-safe-top z-50 sticky top-0 shadow-hard w-full shrink-0">
                 <div className="max-w-lg mx-auto flex justify-between items-end gap-2 px-1">
-                    <div className="bg-soviet-cream border-2 border-black px-2.5 py-1 shadow-hard-sm transform -rotate-1 min-w-[65px] rounded-lg">
-                        <span className="block text-[8px] font-bold text-soviet-dark leading-none tracking-widest uppercase mb-0.5">{T.score}</span>
-                        <span className="block text-xl font-bold text-soviet-red leading-none">{score}</span>
+                    <div className="bg-soviet-cream border-2 border-black px-2 py-0.5 shadow-hard-sm transform -rotate-1 min-w-[60px] rounded-lg">
+                        <span className="block text-[7px] font-bold text-soviet-dark leading-none tracking-widest uppercase mb-0.5">{T.score}</span>
+                        <span className="block text-lg font-bold text-soviet-red leading-none">{score}</span>
                     </div>
                     <div className="flex items-center gap-2">
                          <div className="flex flex-col items-center">
-                             <div className="bg-soviet-dark text-soviet-gold text-[8px] px-1.5 rounded-t font-bold tracking-wider border-x-2 border-t-2 border-black/50 uppercase">{T.level}</div>
-                             <div className="bg-soviet-gold text-soviet-dark font-bold text-xl px-3.5 border-2 border-black shadow-hard-sm leading-none py-1.5 rounded-b-lg">{level}</div>
+                             <div className="bg-soviet-dark text-soviet-gold text-[7px] px-1.5 rounded-t font-bold tracking-wider border-x-2 border-t-2 border-black/50 uppercase">{T.level}</div>
+                             <div className="bg-soviet-gold text-soviet-dark font-bold text-lg px-3 border-2 border-black shadow-hard-sm leading-none py-1 rounded-b-lg">{level}</div>
                         </div>
-                        <div className="flex gap-1 bg-black/15 p-1.5 rounded-xl border-2 border-black/20 shadow-inner">
+                        <div className="flex gap-1 bg-black/10 p-1 rounded-xl border-2 border-black/20 shadow-inner">
                              {[...Array(maxLives)].map((_, i) => (
-                                 <Heart key={i} size={20} 
+                                 <Heart key={i} size={18} 
                                     fill={i < lives ? "#D92B2B" : "transparent"}
                                     stroke={i < lives ? "#000" : "#666"}
                                     strokeWidth={2}
-                                    className={`${i < lives ? "drop-shadow-sm" : "opacity-30"}`}
+                                    className={`${i < lives ? "drop-shadow-sm" : "opacity-20"}`}
                                  />
                              ))}
                         </div>
                     </div>
-                    <button onClick={togglePause} className="bg-soviet-cream border-2 border-black p-2 hover:bg-white active:scale-90 shadow-hard-sm rounded-full"><Settings size={20} className="text-soviet-dark" /></button>
+                    <button onClick={togglePause} className="bg-soviet-cream border-2 border-black p-1.5 hover:bg-white active:scale-90 shadow-hard-sm rounded-full"><Settings size={18} className="text-soviet-dark" /></button>
                 </div>
             </div>
-            <div className="flex-1 flex flex-col items-center p-3 w-full max-w-lg mx-auto relative z-0 overflow-hidden">
+            {/* flex-1 с justify-center для центрирования и предотвращения "вылета" вверх */}
+            <div className="flex-1 flex flex-col items-center justify-center p-3 w-full max-w-lg mx-auto relative z-0 overflow-hidden">
                 {currentQuestion && (
-                    <div className={`w-full space-y-4 sm:space-y-6 ${isWrong ? 'animate-shake' : ''}`}>
-                         <div className="w-full flex flex-col items-center">
+                    <div className={`w-full flex flex-col items-center space-y-4 sm:space-y-6 ${isWrong ? 'animate-shake' : ''}`}>
+                         <div className="w-full flex flex-col items-center shrink-0">
                              <TVFrame imageUrl={currentQuestion.imageUrl} label={T.tv_brand} skin={activeTvSkin} />
                              {activePowerups.size > 0 && (
-                                <div className="mt-2 flex gap-2">
-                                    {activePowerups.has('shield') && <div className="bg-soviet-green text-white text-[9px] px-3 py-1 rounded-full border-2 border-black shadow-hard-sm font-bold uppercase tracking-tight animate-float">Доп. жизнь активна</div>}
-                                    {activePowerups.has('boost') && <div className="bg-soviet-gold text-soviet-dark text-[9px] px-3 py-1 rounded-full border-2 border-black shadow-hard-sm font-bold uppercase tracking-tight animate-float">Буст звезд активен</div>}
+                                <div className="mt-2 flex gap-1.5">
+                                    {activePowerups.has('shield') && <div className="bg-soviet-green text-white text-[8px] px-2 py-0.5 rounded-full border border-black shadow-sm font-bold uppercase tracking-tight animate-float">Защита +1</div>}
+                                    {activePowerups.has('boost') && <div className="bg-soviet-gold text-soviet-dark text-[8px] px-2 py-0.5 rounded-full border border-black shadow-sm font-bold uppercase tracking-tight animate-float">Звезды x2</div>}
                                 </div>
                              )}
                          </div>
-                         <div className="relative max-w-fit mx-auto scale-90">
-                             <div className="relative bg-white px-8 py-2.5 rounded-xl shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
-                                 <span className="font-bold tracking-[0.2em] text-soviet-dark text-sm block text-center uppercase whitespace-nowrap">{T.question}</span>
+                         {/* Заголовок вопроса "Откуда это?" исправлен: убрана тень, добавлен простой border для предотвращения ряби */}
+                         <div className="relative max-w-fit mx-auto scale-90 shrink-0">
+                             <div className="relative bg-white px-8 py-2 border-2 border-black rounded-xl shadow-sm">
+                                 <span className="font-bold tracking-[0.2em] text-soviet-dark text-xs block text-center uppercase whitespace-nowrap">{T.question}</span>
                              </div>
                          </div>
-                         <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full pb-6">
+                         <div className="grid grid-cols-2 gap-2 sm:gap-3.5 w-full pb-4 shrink-0">
                              {options.map((opt, idx) => {
                                  const isSelected = selectedId === opt.id;
                                  const isCorrect = opt.id === currentQuestion.id;
@@ -593,10 +599,10 @@ export default function App() {
                                  return (
                                      <Button 
                                         key={opt.id} rounded variant={variant} disabled={!!selectedId}
-                                        className={`min-h-[60px] sm:min-h-[72px] text-[10px] sm:text-xs leading-tight normal-case text-left pl-3 sm:pl-6 flex justify-start items-center border-none ${!selectedId ? 'hover:scale-[1.02]' : ''}`}
+                                        className={`min-h-[55px] sm:min-h-[68px] text-[9px] sm:text-xs leading-tight normal-case text-left pl-3 sm:pl-5 flex justify-start items-center border-2 ${!selectedId ? 'hover:scale-[1.01]' : ''}`}
                                         onClick={() => handleAnswer(opt)}
                                      >
-                                         <span className={`font-bold mr-1.5 sm:mr-3 text-lg sm:text-xl font-ruslan ${isSelected ? 'text-white' : 'text-soviet-red opacity-80'}`}>{idx + 1}.</span>
+                                         <span className={`font-bold mr-1.5 sm:mr-2 text-base sm:text-lg font-ruslan ${isSelected ? 'text-white' : 'text-soviet-red opacity-70'}`}>{idx + 1}.</span>
                                          <span className="font-oswald font-bold uppercase tracking-tight line-clamp-2">{opt[lang].title}</span>
                                      </Button>
                                  );
@@ -607,11 +613,11 @@ export default function App() {
             </div>
             {gameState === 'paused' && (
                 <div className="fixed inset-0 bg-soviet-dark/90 z-[100] flex items-center justify-center p-4">
-                    <div className="bg-soviet-cream p-8 border-4 border-black w-full max-w-xs shadow-hard-lg text-center relative rotate-1 rounded-[32px]">
-                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-soviet-red text-white px-8 py-2 font-ruslan tracking-widest text-2xl border-2 border-black shadow-hard-sm -rotate-2 rounded-full uppercase">{T.pause}</div>
-                        <div className="space-y-4 mt-6">
-                            <Button fullWidth rounded onClick={togglePause} variant="primary" className="py-4"><Play size={24} fill="currentColor" /> {T.resume}</Button>
-                            <Button fullWidth rounded onClick={goMenu} variant="secondary"><Home size={20} /> {T.menu}</Button>
+                    <div className="bg-soviet-cream p-6 border-4 border-black w-full max-w-xs shadow-hard-lg text-center relative rotate-1 rounded-[32px]">
+                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-soviet-red text-white px-6 py-1.5 font-ruslan tracking-widest text-xl border-2 border-black shadow-hard-sm -rotate-2 rounded-full uppercase">{T.pause}</div>
+                        <div className="space-y-3.5 mt-5">
+                            <Button fullWidth rounded onClick={togglePause} variant="primary" className="py-4"><Play size={20} fill="currentColor" /> {T.resume}</Button>
+                            <Button fullWidth rounded onClick={goMenu} variant="secondary" className="py-4"><Home size={20} /> {T.menu}</Button>
                         </div>
                     </div>
                 </div>
