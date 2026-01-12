@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import vkBridge from '@vkontakte/vk-bridge';
 import { CARTOONS, TRANSLATIONS } from './data';
 import { Cartoon, GameState, Language, PlayerStats } from './types';
-import { Play, Home, RefreshCw, ShoppingCart, Heart, Star, Settings, Pause, ShoppingBag, Clapperboard, Award, Shield, Zap, Tv, Film, Trophy, CheckCircle2, Info, Camera, Palette } from 'lucide-react';
+// Added RotateCcw to the imports
+import { Play, Home, RefreshCw, RotateCcw, ShoppingCart, Heart, Star, Settings, Pause, ShoppingBag, Clapperboard, Award, Shield, Zap, Tv, Film, Trophy, CheckCircle2, Info, Camera, Palette } from 'lucide-react';
 
 // --- Types ---
 
@@ -123,6 +125,9 @@ export default function App() {
     const [purchasedSkins, setPurchasedSkins] = useState<Set<string>>(new Set());
     const [activePowerups, setActivePowerups] = useState<Set<string>>(new Set());
     const [activeTvSkin, setActiveTvSkin] = useState<string>('default');
+    
+    // Game Session State
+    const [canAdRevive, setCanAdRevive] = useState(true);
 
     // UI State
     const [toast, setToast] = useState<string | null>(null);
@@ -245,7 +250,6 @@ export default function App() {
 
     const startGame = () => {
         setScore(0);
-        // Bonus life logic
         const bonusLives = activePowerups.has('shield') ? 1 : 0;
         const startingLives = 3 + bonusLives;
         setLives(startingLives);
@@ -255,6 +259,7 @@ export default function App() {
         setAnsweredCount(0);
         setSelectedId(null);
         setUsedQuestionIds(new Set());
+        setCanAdRevive(true); // Reset ad revive status
         setGameState('playing');
         nextQuestion(new Set());
     };
@@ -296,11 +301,9 @@ export default function App() {
                     const newLevel = Math.floor(newAnswered / 3) + 1;
                     setLevel(newLevel);
                     
-                    // Boost logic
                     const multiplier = activePowerups.has('boost') ? 2 : 1;
                     setStars(s => s + (1 * multiplier));
                     
-                    // Difficulty progression
                     if (!activePowerups.has('shield')) {
                         if (newLevel === 2) setMaxLives(2);
                         if (newLevel >= 3) setMaxLives(1);
@@ -313,19 +316,35 @@ export default function App() {
         }, 1000);
     };
 
+    const handleAdRevive = async () => {
+        try {
+            await vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'reward' });
+            setLives(1);
+            setCanAdRevive(false);
+            setGameState('playing');
+            nextQuestion(usedQuestionIds);
+        } catch (e) {
+            showToast(lang === 'ru' ? "Реклама недоступна" : "Ad unavailable");
+        }
+    };
+
     const handleNextResult = () => {
         if (lives <= 0) {
             const earnedStars = stars;
             const newTotalStars = stats.totalStars + earnedStars;
             const newHighScore = Math.max(stats.highScore, score);
             
-            // Consumable powerups reset
-            const emptyPowerups = new Set<string>();
-            setStats(prev => ({ ...prev, totalStars: newTotalStars, highScore: newHighScore }));
-            setActivePowerups(emptyPowerups);
-            updateStorage(newHighScore, newTotalStars, purchasedSkins, activeTvSkin, emptyPowerups);
-            
-            setGameState('gameover');
+            // If they can still revive, we don't save stats yet, just go to gameover
+            if (canAdRevive) {
+                setGameState('gameover');
+            } else {
+                // Game actually ends
+                const emptyPowerups = new Set<string>();
+                setStats(prev => ({ ...prev, totalStars: newTotalStars, highScore: newHighScore }));
+                setActivePowerups(emptyPowerups);
+                updateStorage(newHighScore, newTotalStars, purchasedSkins, activeTvSkin, emptyPowerups);
+                setGameState('gameover');
+            }
         } else {
             setGameState('playing');
             nextQuestion(usedQuestionIds);
@@ -334,7 +353,7 @@ export default function App() {
 
     const togglePause = () => setGameState(curr => curr === 'playing' ? 'paused' : 'playing');
     const goMenu = () => { 
-        if (gameState === 'playing' || gameState === 'result') {
+        if (gameState === 'playing' || gameState === 'result' || gameState === 'gameover') {
             const newHighScore = Math.max(stats.highScore, score);
             const newTotalStars = stats.totalStars + stars;
             const emptyPowerups = new Set<string>();
@@ -511,7 +530,10 @@ export default function App() {
                     </div>
                     <p className="text-center mb-6 italic font-serif text-gray-600 leading-relaxed px-4 text-sm">{T.gameover_msg}</p>
                     <div className="space-y-4">
-                        <Button fullWidth rounded onClick={startGame} className="py-4 text-lg"><RefreshCw size={24} /> {T.revive}</Button>
+                        {canAdRevive && (
+                            <Button fullWidth rounded variant="accent" onClick={handleAdRevive} className="py-4 text-lg border-2 border-black"><RefreshCw size={24} /> {T.revive_ad}</Button>
+                        )}
+                        <Button fullWidth rounded onClick={startGame} className="py-4 text-lg border-2 border-black"><RotateCcw size={24} /> {T.revive}</Button>
                         <Button fullWidth rounded variant="secondary" onClick={goMenu}><Home size={20} /> {T.menu}</Button>
                     </div>
                  </div>

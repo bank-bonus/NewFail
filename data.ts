@@ -3,7 +3,7 @@ import { Cartoon } from './types';
 export const CARTOONS: Cartoon[] = [
   { id: "nu_pogodi", imageUrl: "images/nu_pogodi.jpg", ru: { title: "Ну, погоди!", desc: "Легендарная погоня Волка за Зайцем." }, en: { title: "Well, Just You Wait!", desc: "Legendary chase of the Wolf after the Hare." }, tr: { title: "Seni Gidi Seni!", desc: "Kurt'un Tavşan'ı efsanevi kovalamacası." } },
   { id: "vinni_puh", imageUrl: "images/vinni_puh.jpg", ru: { title: "Винни-Пух", desc: "Винни-Пуха озвучивал Евгений Леонов." }, en: { title: "Winnie-the-Pooh", desc: "Soviet version of the famous bear." }, tr: { title: "Winnie-the-Pooh", desc: "Ünlü ayının Sovyet версийону." } },
-  { id: "prostokvashino", imageUrl: "images/prostokvashino.jpg", ru: { title: "Простоквашино", desc: "Дядя Фёдор уехал жить с котом и псом." }, en: { title: "Prostokvashino", desc: "A boy lives in a village with a cat and a dog." }, tr: { title: "Prostokvaşino", desc: "Bir çocuk köyde kedi ve köpekle yaşar." } },
+  { id: "prostokvashino", imageUrl: "images/prostokvashino.jpg", ru: { title: "Простоквашино", desc: "Дядя Фёдор уехал жить с котом и псом." }, en: { title: "Prostokvashino", desc: "A boy lives in a village with a cat and a dog." }, tr: { title: "Prostokvaşino", desc: "Bir child köyde kedi ve köpekle yaşar." } },
   { id: "bremenskie", imageUrl: "images/bremenskie.jpg", ru: { title: "Бременские музыканты", desc: "Музыкальная фантазия с элементами рок-н-ролла." }, en: { title: "Bremen Musicians", desc: "Musical fantasy with rock-n-roll elements." }, tr: { title: "Bremen Mızıkacıları", desc: "Rock-n-roll öğeleri içeren müzikal fantezi." } },
   { id: "ezhik", imageUrl: "images/ezhik.jpg", ru: { title: "Ёжик в тумане", desc: "Признан лучшим мультфильмом всех времён." }, en: { title: "Hedgehog in the Fog", desc: "Acclaimed as the best cartoon of all time." }, tr: { title: "Sisteki Kirpi", desc: "Tüm zamanların en iyi çizgi filmi seçildi." } },
   { id: "karlson", imageUrl: "images/karlson.jpg", ru: { title: "Малыш и Карлсон", desc: "История о человеке, который живет на крыше." }, en: { title: "Kid and Karlsson", desc: "Story about a man who lives on the roof." }, tr: { title: "Çocuk ve Karlsson", desc: "Çatıda yaşayan bir adamın hikayesi." } },
@@ -62,7 +62,7 @@ export const TRANSLATIONS = {
     ru: { 
         title: "СоюзМультКвиз", subtitle: "МУЛЬТФИЛЬМЫ СССР", start: "ИГРАТЬ", shop: "МАГАЗИН", score: "СЧЕТ", level: "УРОВЕНЬ", record: "РЕКОРД", stars: "ЗВЕЗДЫ", 
         question: "ОТКУДА ЭТО?", frame_label: "КАДР ИЗ МУЛЬТФИЛЬМА", next: "ДАЛЕЕ", correct: "ВЕРНО!", wrong: "ОШИБКА!", gameover: "КОНЕЦ ФИЛЬМА", 
-        your_score: "ВАШ РЕЗУЛЬТАТ", gameover_msg: "Плёнка оборвалась! Но вы можете начать новую историю.", revive: "НАЧАТЬ ЗАНОВО", ad_hint: "Новая игра", 
+        your_score: "ВАШ РЕЗУЛЬТАТ", gameover_msg: "Плёнка оборвалась! Но вы можете продолжить историю.", revive: "ЗАНОВО", revive_ad: "ШАНС ЗА 📺", 
         menu: "В МЕНЮ", resume: "ПРОДОЛЖИТЬ", pause: "ПАУЗА", shop_title: "ЛАВКА", shop_msg: "Новинки скоро!", tv_brand: "РУБИН", 
         bonus: "КИНО", earn_stars: "ПОСМОТРЕТЬ МУЛЬТИК", watch_ad_desc: "Цена: 1000 ⭐", earn: "СМОТРЕТЬ",
         bought_success: "УСПЕШНО КУПЛЕНО!", close: "ЗАКРЫТЬ", confirm_purchase: "КУПИТЬ?", yes: "ДА", no: "НЕТ",
@@ -73,7 +73,7 @@ export const TRANSLATIONS = {
     en: { 
         title: "SovietToonQuiz", subtitle: "USSR CARTOONS", start: "PLAY", shop: "SHOP", score: "SCORE", level: "LEVEL", record: "BEST", stars: "STARS", 
         question: "WHICH ONE?", frame_label: "SCENE FROM CARTOON", next: "NEXT", correct: "CORRECT!", wrong: "WRONG!", gameover: "THE END", 
-        your_score: "YOUR SCORE", gameover_msg: "The film broke! But you can start a new story.", revive: "RESTART", ad_hint: "New game", 
+        your_score: "YOUR SCORE", gameover_msg: "The film broke! But you can continue the story.", revive: "RESTART", revive_ad: "CHANCE FOR 📺", 
         menu: "MENU", resume: "RESUME", pause: "PAUSED", shop_title: "STORE", shop_msg: "New items coming soon!", tv_brand: "RUBIN",
         bonus: "CINEMA", earn_stars: "WATCH CARTOON", watch_ad_desc: "Price: 1000 ⭐", earn: "WATCH",
         bought_success: "SUCCESSFULLY BOUGHT!", close: "CLOSE", confirm_purchase: "BUY?", yes: "YES", no: "NO",
@@ -84,7 +84,7 @@ export const TRANSLATIONS = {
     tr: { 
         title: "SovyetQuiz", subtitle: "SSCB ÇİZGИ FİLMLERİ", start: "OYNA", shop: "MAĞAZA", score: "PUAN", level: "SEVИYE", record: "REKOR", stars: "YILDIZLAR", 
         question: "HANGИSИ?", frame_label: "KARE", next: "SONRAKИ", correct: "DOĞRU!", wrong: "YANLIŞ!", gameover: "FИLMИN SONU", 
-        your_score: "PUANINIZ", gameover_msg: "Film koptu! Ama yeni bir hikaye başlayabilirsin.", revive: "TEKRAR BAŞLA", ad_hint: "Yeni oyun", 
+        your_score: "PUANINIZ", gameover_msg: "Film koptu! Ama hikayeye devam edebilirsin.", revive: "TEKRAR", revive_ad: "ŞANS İÇİN 📺", 
         menu: "MENÜ", resume: "DEVAM", pause: "DURAKLATILDI", shop_title: "DÜKKAN", shop_msg: "Yeni ürünler yakında!", tv_brand: "RUBIN",
         bonus: "SİNEMA", earn_stars: "ÇİZGİ FİLM İЗLE", watch_ad_desc: "Fiyat: 1000 ⭐", earn: "İZLE",
         bought_success: "BAŞARIYLA SATIN ALINDI!", close: "KAPAT", confirm_purchase: "SATIN AL?", yes: "EVET", no: "HAYIR",
