@@ -30,13 +30,11 @@ const SHOP_ITEMS: ShopItem[] = [
 
 const AdBanner: React.FC = () => {
     useEffect(() => {
-        // Вызов официального баннера VK
         vkBridge.send('VKWebAppShowBannerAd', {
             banner_location: 'bottom'
         }).catch(err => console.debug('Banner Ad failed or not supported', err));
     }, []);
 
-    // Возвращаем пустой контейнер или отступ, если VK баннер накладывается поверх
     return <div className="h-[70px] w-full pointer-events-none" />;
 };
 
@@ -60,9 +58,9 @@ const Button: React.FC<{
     disabled?: boolean;
     fullWidth?: boolean;
     rounded?: boolean;
-}> = ({ children, onClick, variant = 'primary', className = '', disabled = false, fullWidth = false, rounded = false }) => {
-    const baseStyle = `relative font-oswald uppercase tracking-widest font-bold py-3 px-6 transition-all transform active:translate-y-[4px] active:shadow-none flex items-center justify-center gap-3 z-10 ${rounded ? 'rounded-2xl' : 'border-2 border-black'}`;
-    // Фикс "ряби": используем более стабильную тень без субпиксельных смещений
+    noBorder?: boolean;
+}> = ({ children, onClick, variant = 'primary', className = '', disabled = false, fullWidth = false, rounded = false, noBorder = false }) => {
+    const baseStyle = `relative font-oswald uppercase tracking-widest font-bold py-3 px-6 transition-all transform active:translate-y-[4px] active:shadow-none flex items-center justify-center gap-3 z-10 ${rounded ? 'rounded-2xl' : ''} ${noBorder ? '' : 'border-2 border-black'}`;
     const shadowStyle = disabled ? "shadow-none" : "shadow-[0_4px_0_0_rgba(0,0,0,0.2)]";
     const variants = {
         primary: "bg-soviet-red text-white",
@@ -377,7 +375,7 @@ export default function App() {
 
     if (gameState === 'menu') {
         return (
-            <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 relative overflow-hidden pb-[100px]">
+            <div className="h-screen w-full flex flex-col items-center justify-center p-6 relative overflow-hidden pb-[100px]">
                 <Toast message={toast} />
                 <div className="max-w-md w-full bg-white border-[6px] border-soviet-dark rounded-[40px] shadow-menu-card relative overflow-hidden flex flex-col items-center p-8 animate-slide-up">
                     <div className="absolute top-0 inset-x-0 h-4 bg-soviet-red"></div>
@@ -420,7 +418,7 @@ export default function App() {
 
     if (gameState === 'shop') {
         return (
-            <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 font-oswald paper-texture overflow-x-hidden pb-[100px]">
+            <div className="h-screen w-full flex flex-col items-center justify-center p-4 font-oswald paper-texture overflow-hidden pb-[100px]">
                 <Toast message={toast} />
                 <div className="max-w-md w-full bg-white border-4 border-soviet-dark p-6 rounded-[32px] shadow-hard-lg relative animate-slide-up">
                     <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-soviet-red text-soviet-cream px-8 py-2 border-2 border-black shadow-hard font-bold tracking-widest -rotate-1 text-xl rounded-full uppercase">{T.shop_title}</div>
@@ -458,7 +456,7 @@ export default function App() {
                                     </div>
                                     <div className="flex-1 text-left">
                                         <h4 className="font-bold text-sm leading-none uppercase">{item.name[lang]}</h4>
-                                        <p className="text-[10px] text-gray-500 leading-tight">{item.desc[lang]}</p>
+                                        <p className="text-[10px] text-gray-100/50 leading-tight">{item.desc[lang]}</p>
                                     </div>
                                     <div className="flex flex-col gap-1">
                                         {(!isShield || isOwned) && (
@@ -496,7 +494,7 @@ export default function App() {
 
     if (gameState === 'gameover') {
         return (
-            <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-dark/95 font-oswald relative overflow-hidden pb-[100px]">
+            <div className="h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-dark/95 font-oswald relative overflow-hidden pb-[140px]">
                  <Toast message={toast} />
                  <div className="max-w-md w-full bg-white border-4 border-black p-6 shadow-2xl relative rotate-1 animate-slide-up rounded-[40px]">
                     <h2 className="font-ruslan text-5xl mb-6 text-center text-soviet-dark drop-shadow-md uppercase">{T.gameover}</h2>
@@ -507,13 +505,13 @@ export default function App() {
                     </div>
                     <p className="text-center mb-6 italic font-serif text-gray-600 leading-relaxed px-4 text-sm">{T.gameover_msg}</p>
                     <div className="space-y-4">
-                        <Button fullWidth rounded variant="accent" onClick={handleAdRevive} className="py-5 text-base border-2 border-black animate-float ring-4 ring-soviet-gold/40 shadow-[0_0_20px_rgba(244,196,48,0.4)]">
+                        <Button fullWidth rounded variant="accent" onClick={handleAdRevive} className="py-5 text-base animate-float ring-4 ring-soviet-gold/40 shadow-[0_0_20px_rgba(244,196,48,0.4)]" noBorder>
                             <MonitorPlay size={24} /> {T.revive_ad}
                         </Button>
-                        <Button fullWidth rounded onClick={startGame} className="py-4 text-lg border-2 border-black">
+                        <Button fullWidth rounded onClick={startGame} className="py-4 text-lg" noBorder>
                             <RotateCcw size={24} /> {T.revive}
                         </Button>
-                        <Button fullWidth rounded variant="secondary" onClick={goMenu}><Home size={20} /> {T.menu}</Button>
+                        <Button fullWidth rounded variant="secondary" onClick={goMenu} noBorder><Home size={20} /> {T.menu}</Button>
                     </div>
                  </div>
                  <AdBanner />
@@ -523,7 +521,7 @@ export default function App() {
 
     if (gameState === 'result' && lastResult) {
         return (
-            <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-cream paper-texture font-oswald overflow-hidden pb-[100px]">
+            <div className="h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-cream paper-texture font-oswald overflow-hidden pb-[100px]">
                 <div className={`max-w-md w-full bg-white border-4 border-black p-5 shadow-hard-lg relative animate-slide-up rounded-[32px] ${isWrong ? 'animate-shake' : ''}`}>
                     <div className={`absolute -top-5 left-1/2 -translate-x-1/2 px-8 py-1.5 border-2 border-black font-ruslan text-2xl shadow-hard rounded-full ${lastResult.correct ? 'bg-soviet-green text-white rotate-1' : 'bg-soviet-red text-white -rotate-1'}`}>{lastResult.correct ? T.correct : T.wrong}</div>
                     <div className="mt-8 border-4 border-black bg-black rounded-[24px] overflow-hidden relative aspect-video shadow-inner-hard mb-4">
@@ -542,7 +540,7 @@ export default function App() {
     }
 
     return (
-        <div className="min-h-screen w-full flex flex-col bg-soviet-cream font-oswald relative paper-texture overflow-x-hidden pb-[100px]">
+        <div className="h-screen w-full flex flex-col bg-soviet-cream font-oswald relative paper-texture overflow-hidden pb-[100px]">
             <Toast message={toast} />
             <div className="bg-soviet-red border-b-4 border-black p-2.5 pt-safe-top z-50 sticky top-0 shadow-hard w-full">
                 <div className="max-w-lg mx-auto flex justify-between items-end gap-2 px-1">
@@ -569,7 +567,7 @@ export default function App() {
                     <button onClick={togglePause} className="bg-soviet-cream border-2 border-black p-2 hover:bg-white active:scale-90 shadow-hard-sm rounded-full"><Settings size={20} className="text-soviet-dark" /></button>
                 </div>
             </div>
-            <div className="flex-1 flex flex-col items-center p-3 w-full max-w-lg mx-auto relative z-0">
+            <div className="flex-1 flex flex-col items-center p-3 w-full max-w-lg mx-auto relative z-0 overflow-hidden">
                 {currentQuestion && (
                     <div className={`w-full space-y-4 sm:space-y-6 ${isWrong ? 'animate-shake' : ''}`}>
                          <div className="w-full flex flex-col items-center">
@@ -581,9 +579,8 @@ export default function App() {
                                 </div>
                              )}
                          </div>
-                         {/* Исправлен блок заголовка вопроса (удалены нестабильные повороты и div-тени, вызывавшие рябь) */}
                          <div className="relative max-w-fit mx-auto scale-90">
-                             <div className="relative bg-white border-2 border-black px-8 py-2.5 rounded-xl shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+                             <div className="relative bg-white px-8 py-2.5 rounded-xl shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
                                  <span className="font-bold tracking-[0.2em] text-soviet-dark text-sm block text-center uppercase whitespace-nowrap">{T.question}</span>
                              </div>
                          </div>

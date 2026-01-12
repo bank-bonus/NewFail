@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -62,15 +63,26 @@
         }
     </script>
     <style>
-        body {
+        * {
+            touch-action: manipulation;
+        }
+
+        html, body {
             overscroll-behavior: none;
+            overflow: hidden; /* Disable scrolling globally */
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            position: fixed;
+        }
+
+        body {
             background-color: #f1ede4;
             background-image: radial-gradient(#d1ccc0 1.5px, transparent 1.5px);
             background-size: 18px 18px;
             -webkit-user-select: none;
             user-select: none;
-            overflow-x: hidden;
-            width: 100%;
         }
         
         .paper-texture::before {
@@ -103,7 +115,8 @@
 
         #root {
             width: 100%;
-            overflow-x: hidden;
+            height: 100%;
+            overflow: hidden;
         }
     </style>
 <script type="importmap">
