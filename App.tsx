@@ -3,8 +3,7 @@ import React, { useState, useEffect } from 'react';
 import vkBridge from '@vkontakte/vk-bridge';
 import { CARTOONS, TRANSLATIONS } from './data';
 import { Cartoon, GameState, Language, PlayerStats } from './types';
-// Added RotateCcw to the imports
-import { Play, Home, RefreshCw, RotateCcw, ShoppingCart, Heart, Star, Settings, Pause, ShoppingBag, Clapperboard, Award, Shield, Zap, Tv, Film, Trophy, CheckCircle2, Info, Camera, Palette } from 'lucide-react';
+import { Play, Home, RefreshCw, RotateCcw, ShoppingCart, Heart, Star, Settings, Pause, ShoppingBag, Clapperboard, Award, Shield, Zap, Tv, Film, Trophy, CheckCircle2, Info, Camera, Palette, MonitorPlay } from 'lucide-react';
 
 // --- Types ---
 
@@ -20,14 +19,33 @@ interface ShopItem {
 // --- Constants ---
 
 const SHOP_ITEMS: ShopItem[] = [
-    { id: 'shield', icon: Shield, price: 50, name: { ru: 'Защита', en: 'Shield', tr: 'Kalkan' }, desc: { ru: '+1 жизнь на одну игру', en: '+1 life for one game', tr: 'Bir oyun için +1 can' }, type: 'powerup' },
+    { id: 'shield', icon: Shield, price: 0, name: { ru: 'Защита', en: 'Shield', tr: 'Kalkan' }, desc: { ru: '+1 жизнь на одну игру', en: '+1 life for one game', tr: 'Bir oyun için +1 can' }, type: 'powerup' },
     { id: 'boost', icon: Zap, price: 100, name: { ru: 'Буст x2', en: 'Boost x2', tr: 'Takviye x2' }, desc: { ru: 'x2 звезды на одну игру', en: 'x2 stars for one game', tr: 'Bir oyun için x2 yıldız' }, type: 'powerup' },
-    { id: 'master', icon: Award, price: 500, name: { ru: 'Знаток', en: 'Master', tr: 'Usta' }, desc: { ru: 'Золотой телевизор', en: 'Gold TV Frame', tr: 'Altın TV Çerçevesi' }, type: 'skin' },
-    { id: 'tv_red', icon: Tv, price: 200, name: { ru: 'Красный ТВ', en: 'Red TV', tr: 'Kırmızı TV' }, desc: { ru: 'Красный корпус', en: 'Red body', tr: 'Kırmızı gövde' }, type: 'skin' },
-    { id: 'tv_silver', icon: Palette, price: 300, name: { ru: 'Серебряный ТВ', en: 'Silver TV', tr: 'Gümüş TV' }, desc: { ru: 'Металлический блеск', en: 'Silver body', tr: 'Gümüş gövde' }, type: 'skin' }
+    { id: 'master', icon: Award, price: 500, name: { ru: 'Знаток', en: 'Master', tr: 'Usta' }, desc: { ru: 'Золотой телевизор', en: 'Gold TV Frame', tr: 'Altın TV Чerçevesi' }, type: 'skin' },
+    { id: 'tv_red', icon: Tv, price: 200, name: { ru: 'Красный ТВ', en: 'Red TV', tr: 'Kırmızı TV' }, desc: { ru: 'Красный корпус', en: 'Red body', tr: 'Kırmızı göвде' }, type: 'skin' },
+    { id: 'tv_silver', icon: Palette, price: 300, name: { ru: 'Серебряный ТВ', en: 'Silver TV', tr: 'Gümüş ТВ' }, desc: { ru: 'Металлический блеск', en: 'Silver body', tr: 'Gümüş göвде' }, type: 'skin' }
 ];
 
 // --- Components ---
+
+const AdBanner: React.FC = () => {
+    return (
+        <div className="vkwebbanner fixed bottom-0 left-0 right-0 h-[65px] bg-[#f0f2f5] flex items-center justify-center z-[80] border-t border-black/10 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+            <div className="w-full max-w-lg flex items-center justify-between px-4 sm:px-6">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-soviet-gold rounded-lg flex items-center justify-center border border-black/10 shadow-sm overflow-hidden">
+                        <Star size={20} fill="black" />
+                    </div>
+                    <div className="text-left">
+                        <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none mb-1">Рекламная сеть ВКонтакте</div>
+                        <div className="text-black text-xs font-bold leading-tight uppercase line-clamp-1">Играйте в лучшие игры каталога!</div>
+                    </div>
+                </div>
+                <div className="bg-[#447bba] text-white px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase shadow-sm active:opacity-80 transition-opacity">Перейти</div>
+            </div>
+        </div>
+    );
+};
 
 const Toast: React.FC<{ message: string | null }> = ({ message }) => {
     if (!message) return null;
@@ -120,21 +138,18 @@ export default function App() {
     const [stars, setStars] = useState(0);
     const [isWrong, setIsWrong] = useState(false);
     
-    // Stats & Persistence - Initial stars set to 0
+    // Stats & Persistence
     const [stats, setStats] = useState<PlayerStats>({ highScore: 0, totalStars: 0 });
-    const [purchasedSkins, setPurchasedSkins] = useState<Set<string>>(new Set());
-    const [activePowerups, setActivePowerups] = useState<Set<string>>(new Set());
+    const [purchasedSkins, setPurchasedSkins] = useState<Set<string>>(new Set<string>());
+    const [activePowerups, setActivePowerups] = useState<Set<string>>(new Set<string>());
     const [activeTvSkin, setActiveTvSkin] = useState<string>('default');
-    
-    // Game Session State
-    const [canAdRevive, setCanAdRevive] = useState(true);
 
     // UI State
     const [toast, setToast] = useState<string | null>(null);
     const [purchaseModal, setPurchaseModal] = useState<{item: ShopItem, success: boolean} | null>(null);
     const [cinemaCartoon, setCinemaCartoon] = useState<Cartoon | null>(null);
 
-    const T = TRANSLATIONS[lang];
+    const T = (TRANSLATIONS as any)[lang];
 
     const showToast = (msg: string) => {
         setToast(msg);
@@ -144,7 +159,7 @@ export default function App() {
     // Game logic
     const [currentQuestion, setCurrentQuestion] = useState<Cartoon | null>(null);
     const [options, setOptions] = useState<Cartoon[]>([]);
-    const [usedQuestionIds, setUsedQuestionIds] = useState<Set<string>>(new Set());
+    const [usedQuestionIds, setUsedQuestionIds] = useState<Set<string>>(new Set<string>());
     const [lastResult, setLastResult] = useState<{correct: boolean, correctItem: Cartoon} | null>(null);
     const [answeredCount, setAnsweredCount] = useState(0);
     const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -166,9 +181,9 @@ export default function App() {
                     storage.keys.forEach(k => {
                         if (k.key === 'highScore') loadedStats.highScore = parseInt(k.value) || 0;
                         if (k.key === 'totalStars') loadedStats.totalStars = parseInt(k.value) || 0;
-                        if (k.key === 'purchasedSkins') setPurchasedSkins(new Set<string>(JSON.parse(k.value || '[]')));
+                        if (k.key === 'purchasedSkins') setPurchasedSkins(new Set<string>(JSON.parse(k.value || '[]') as string[]));
                         if (k.key === 'activeSkin') setActiveTvSkin(k.value || 'default');
-                        if (k.key === 'activePowerups') setActivePowerups(new Set<string>(JSON.parse(k.value || '[]')));
+                        if (k.key === 'activePowerups') setActivePowerups(new Set<string>(JSON.parse(k.value || '[]') as string[]));
                     });
                     setStats(loadedStats);
                 }
@@ -223,6 +238,23 @@ export default function App() {
         }
     };
 
+    const handlePowerupByAd = async (itemId: string) => {
+        if (activePowerups.has(itemId)) {
+             showToast(lang === 'ru' ? "Бонус уже активирован" : "Already active");
+             return;
+        }
+        try {
+            await vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'reward' });
+            // Explicitly typing the new Set to avoid 'Set<unknown>' error in some build environments
+            const newPowerups = new Set<string>(activePowerups).add(itemId);
+            setActivePowerups(newPowerups);
+            updateStorage(stats.highScore, stats.totalStars, purchasedSkins, activeTvSkin, newPowerups);
+            showToast(lang === 'ru' ? "Бонус активирован!" : "Powerup activated!");
+        } catch (e) {
+            showToast(lang === 'ru' ? "Реклама недоступна" : "Ad unavailable");
+        }
+    };
+
     const confirmPurchase = () => {
         if (!purchaseModal) return;
         const item = purchaseModal.item;
@@ -233,10 +265,12 @@ export default function App() {
         let newPowerups = activePowerups;
 
         if (item.type === 'skin') {
-            newSkins = new Set(purchasedSkins).add(item.id);
+            // Explicitly typing the new Set to avoid 'Set<unknown>' error
+            newSkins = new Set<string>(purchasedSkins).add(item.id);
             newSkin = item.id;
         } else {
-            newPowerups = new Set(activePowerups).add(item.id);
+            // Explicitly typing the new Set to avoid 'Set<unknown>' error
+            newPowerups = new Set<string>(activePowerups).add(item.id);
         }
 
         setStats(prev => ({ ...prev, totalStars: newTotal }));
@@ -258,10 +292,9 @@ export default function App() {
         setStars(0);
         setAnsweredCount(0);
         setSelectedId(null);
-        setUsedQuestionIds(new Set());
-        setCanAdRevive(true); // Reset ad revive status
+        setUsedQuestionIds(new Set<string>());
         setGameState('playing');
-        nextQuestion(new Set());
+        nextQuestion(new Set<string>());
     };
 
     const nextQuestion = (used: Set<string>) => {
@@ -272,7 +305,8 @@ export default function App() {
             available = CARTOONS;
         }
         const next = available[Math.floor(Math.random() * available.length)];
-        const nextUsed = new Set(used);
+        // Explicitly typing the new Set to avoid 'Set<unknown>' error
+        const nextUsed = new Set<string>(used);
         nextUsed.add(next.id);
         setUsedQuestionIds(nextUsed);
 
@@ -320,7 +354,6 @@ export default function App() {
         try {
             await vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'reward' });
             setLives(1);
-            setCanAdRevive(false);
             setGameState('playing');
             nextQuestion(usedQuestionIds);
         } catch (e) {
@@ -330,21 +363,7 @@ export default function App() {
 
     const handleNextResult = () => {
         if (lives <= 0) {
-            const earnedStars = stars;
-            const newTotalStars = stats.totalStars + earnedStars;
-            const newHighScore = Math.max(stats.highScore, score);
-            
-            // If they can still revive, we don't save stats yet, just go to gameover
-            if (canAdRevive) {
-                setGameState('gameover');
-            } else {
-                // Game actually ends
-                const emptyPowerups = new Set<string>();
-                setStats(prev => ({ ...prev, totalStars: newTotalStars, highScore: newHighScore }));
-                setActivePowerups(emptyPowerups);
-                updateStorage(newHighScore, newTotalStars, purchasedSkins, activeTvSkin, emptyPowerups);
-                setGameState('gameover');
-            }
+            setGameState('gameover');
         } else {
             setGameState('playing');
             nextQuestion(usedQuestionIds);
@@ -368,7 +387,7 @@ export default function App() {
 
     if (gameState === 'menu') {
         return (
-            <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 relative overflow-hidden pb-24">
+            <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 relative overflow-hidden pb-[140px]">
                 <Toast message={toast} />
                 <div className="max-w-md w-full bg-white border-[6px] border-soviet-dark rounded-[40px] shadow-menu-card relative overflow-hidden flex flex-col items-center p-8 animate-slide-up">
                     <div className="absolute top-0 inset-x-0 h-4 bg-soviet-red"></div>
@@ -404,61 +423,15 @@ export default function App() {
                     </div>
                     <div className="absolute bottom-0 inset-x-0 h-2 bg-soviet-red opacity-80"></div>
                 </div>
+                <AdBanner />
             </div>
         );
     }
 
     if (gameState === 'shop') {
         return (
-            <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 font-oswald paper-texture overflow-x-hidden pb-24">
+            <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 font-oswald paper-texture overflow-x-hidden pb-[140px]">
                 <Toast message={toast} />
-                {cinemaCartoon && (
-                    <div className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4">
-                        <div className="max-w-md w-full bg-white border-4 border-soviet-gold p-6 rounded-[32px] text-center shadow-2xl relative animate-wobble">
-                            <h2 className="font-ruslan text-3xl mb-4 text-soviet-red uppercase">{T.cinema_title}</h2>
-                            <div className="aspect-video bg-black rounded-xl overflow-hidden mb-4 border-2 border-black">
-                                <img src={cinemaCartoon.imageUrl} className="w-full h-full object-contain" />
-                            </div>
-                            <h3 className="text-xl font-bold mb-2 uppercase">{cinemaCartoon[lang].title}</h3>
-                            <p className="text-xs mb-6 text-gray-600 italic">"{cinemaCartoon[lang].desc}"</p>
-                            <Button fullWidth rounded onClick={() => setCinemaCartoon(null)} variant="primary">{T.close}</Button>
-                        </div>
-                    </div>
-                )}
-                {purchaseModal && (
-                    <div className="fixed inset-0 z-[100] bg-soviet-dark/80 backdrop-blur-sm flex items-center justify-center p-6">
-                        <div className="bg-white border-4 border-black p-6 rounded-[32px] shadow-hard-lg max-w-xs w-full text-center animate-slide-up relative">
-                             {purchaseModal.success ? (
-                                <>
-                                    <div className="flex flex-col items-center gap-4 mb-4">
-                                        <div className="w-16 h-16 bg-soviet-green rounded-full flex items-center justify-center text-white border-2 border-black">
-                                            <CheckCircle2 size={40} />
-                                        </div>
-                                        <h3 className="text-xl font-bold uppercase">{T.bought_success}</h3>
-                                        <p className="text-sm font-bold text-soviet-dark">{purchaseModal.item.name[lang]}</p>
-                                    </div>
-                                    <Button fullWidth rounded onClick={() => setPurchaseModal(null)} variant="accent">{T.close}</Button>
-                                </>
-                             ) : (
-                                <>
-                                    <h3 className="text-xl font-bold uppercase mb-4">{T.confirm_purchase}</h3>
-                                    <div className="bg-soviet-cream border-2 border-black/10 rounded-xl p-4 mb-6">
-                                        <div className="flex items-center justify-center gap-3 mb-2">
-                                            <purchaseModal.item.icon size={24} className="text-soviet-red" />
-                                            <span className="font-bold">{purchaseModal.item.name[lang]}</span>
-                                        </div>
-                                        <div className="flex items-center justify-center gap-2 text-soviet-gold font-bold">{purchaseModal.item.price} <Star size={16} fill="currentColor" /></div>
-                                    </div>
-                                    <div className="flex gap-3">
-                                        <Button className="flex-1" rounded variant="primary" onClick={confirmPurchase}>{T.yes}</Button>
-                                        <Button className="flex-1" rounded variant="secondary" onClick={() => setPurchaseModal(null)}>{T.no}</Button>
-                                    </div>
-                                </>
-                             )}
-                        </div>
-                    </div>
-                )}
-
                 <div className="max-w-md w-full bg-white border-4 border-soviet-dark p-6 rounded-[32px] shadow-hard-lg relative animate-slide-up">
                     <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-soviet-red text-soviet-cream px-8 py-2 border-2 border-black shadow-hard font-bold tracking-widest -rotate-1 text-xl rounded-full uppercase">{T.shop_title}</div>
                     <div className="mt-8 flex justify-between items-center mb-6 border-b-2 border-dashed border-black/10 pb-4">
@@ -482,6 +455,7 @@ export default function App() {
                         {SHOP_ITEMS.map(item => {
                             const isOwned = item.type === 'skin' ? purchasedSkins.has(item.id) : activePowerups.has(item.id);
                             const isActiveSkin = item.type === 'skin' && activeTvSkin === item.id;
+                            const isShield = item.id === 'shield';
                             
                             let btnLabel = `${item.price} ⭐`;
                             if (isActiveSkin) btnLabel = "✓";
@@ -496,30 +470,43 @@ export default function App() {
                                         <h4 className="font-bold text-sm leading-none uppercase">{item.name[lang]}</h4>
                                         <p className="text-[10px] text-gray-500 leading-tight">{item.desc[lang]}</p>
                                     </div>
-                                    <button 
-                                        disabled={stats.totalStars < item.price && !isOwned}
-                                        onClick={() => handlePurchase(item)}
-                                        className={`px-3 py-1.5 border-2 border-black font-bold text-[10px] shadow-hard-sm active:shadow-none active:translate-y-0.5 rounded-lg min-w-[70px] ${
-                                            isActiveSkin ? 'bg-soviet-green text-white' : 
-                                            isOwned ? (item.type === 'skin' ? 'bg-soviet-gold' : 'bg-soviet-green text-white cursor-default') :
-                                            (stats.totalStars >= item.price ? 'bg-white' : 'bg-gray-200 opacity-50')
-                                        }`}
-                                    >
-                                        {btnLabel}
-                                    </button>
+                                    <div className="flex flex-col gap-1">
+                                        {(!isShield || isOwned) && (
+                                            <button 
+                                                disabled={stats.totalStars < item.price && !isOwned}
+                                                onClick={() => handlePurchase(item)}
+                                                className={`px-3 py-1.5 border-2 border-black font-bold text-[10px] shadow-hard-sm active:shadow-none active:translate-y-0.5 rounded-lg min-w-[70px] ${
+                                                    isActiveSkin ? 'bg-soviet-green text-white' : 
+                                                    isOwned ? (item.type === 'skin' ? 'bg-soviet-gold' : 'bg-soviet-green text-white cursor-default') :
+                                                    (stats.totalStars >= item.price ? 'bg-white' : 'bg-gray-200 opacity-50')
+                                                }`}
+                                            >
+                                                {btnLabel}
+                                            </button>
+                                        )}
+                                        {isShield && !isOwned && (
+                                            <button 
+                                                onClick={() => handlePowerupByAd(item.id)}
+                                                className="px-4 py-2.5 bg-soviet-gold text-soviet-dark border-2 border-black font-bold text-[10px] rounded-xl shadow-hard-sm flex items-center justify-center gap-2 active:translate-y-0.5 active:shadow-none transition-all uppercase whitespace-nowrap"
+                                            >
+                                                <MonitorPlay size={14} /> {T.free_via_ad}
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             );
                         })}
                     </div>
                     <Button fullWidth variant="secondary" onClick={() => setGameState('menu')} rounded><Home size={20} /> {T.menu}</Button>
                 </div>
+                <AdBanner />
             </div>
         );
     }
 
     if (gameState === 'gameover') {
         return (
-            <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-dark/95 font-oswald relative overflow-hidden pb-24">
+            <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-dark/95 font-oswald relative overflow-hidden pb-[140px]">
                  <Toast message={toast} />
                  <div className="max-w-md w-full bg-white border-4 border-black p-6 shadow-2xl relative rotate-1 animate-slide-up rounded-[40px]">
                     <h2 className="font-ruslan text-5xl mb-6 text-center text-soviet-dark drop-shadow-md uppercase">{T.gameover}</h2>
@@ -530,20 +517,23 @@ export default function App() {
                     </div>
                     <p className="text-center mb-6 italic font-serif text-gray-600 leading-relaxed px-4 text-sm">{T.gameover_msg}</p>
                     <div className="space-y-4">
-                        {canAdRevive && (
-                            <Button fullWidth rounded variant="accent" onClick={handleAdRevive} className="py-4 text-lg border-2 border-black"><RefreshCw size={24} /> {T.revive_ad}</Button>
-                        )}
-                        <Button fullWidth rounded onClick={startGame} className="py-4 text-lg border-2 border-black"><RotateCcw size={24} /> {T.revive}</Button>
+                        <Button fullWidth rounded variant="accent" onClick={handleAdRevive} className="py-5 text-base border-2 border-black animate-float ring-4 ring-soviet-gold/40 shadow-[0_0_20px_rgba(244,196,48,0.4)]">
+                            <MonitorPlay size={24} /> {T.revive_ad}
+                        </Button>
+                        <Button fullWidth rounded onClick={startGame} className="py-4 text-lg border-2 border-black">
+                            <RotateCcw size={24} /> {T.revive}
+                        </Button>
                         <Button fullWidth rounded variant="secondary" onClick={goMenu}><Home size={20} /> {T.menu}</Button>
                     </div>
                  </div>
+                 <AdBanner />
             </div>
         );
     }
 
     if (gameState === 'result' && lastResult) {
         return (
-            <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-cream paper-texture font-oswald overflow-hidden">
+            <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-cream paper-texture font-oswald overflow-hidden pb-[100px]">
                 <div className={`max-w-md w-full bg-white border-4 border-black p-5 shadow-hard-lg relative animate-slide-up rounded-[32px] ${isWrong ? 'animate-shake' : ''}`}>
                     <div className={`absolute -top-5 left-1/2 -translate-x-1/2 px-8 py-1.5 border-2 border-black font-ruslan text-2xl shadow-hard rounded-full ${lastResult.correct ? 'bg-soviet-green text-white rotate-1' : 'bg-soviet-red text-white -rotate-1'}`}>{lastResult.correct ? T.correct : T.wrong}</div>
                     <div className="mt-8 border-4 border-black bg-black rounded-[24px] overflow-hidden relative aspect-video shadow-inner-hard mb-4">
@@ -556,12 +546,13 @@ export default function App() {
                     </div>
                     <Button fullWidth rounded onClick={handleNextResult} className="py-3">{T.next} <Clapperboard size={18} /></Button>
                 </div>
+                <AdBanner />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen w-full flex flex-col bg-soviet-cream font-oswald relative paper-texture overflow-x-hidden">
+        <div className="min-h-screen w-full flex flex-col bg-soviet-cream font-oswald relative paper-texture overflow-x-hidden pb-[100px]">
             <Toast message={toast} />
             <div className="bg-soviet-red border-b-4 border-black p-2.5 pt-safe-top z-50 sticky top-0 shadow-hard w-full">
                 <div className="max-w-lg mx-auto flex justify-between items-end gap-2 px-1">
@@ -638,6 +629,7 @@ export default function App() {
                     </div>
                 </div>
             )}
+            <AdBanner />
         </div>
     );
 }
