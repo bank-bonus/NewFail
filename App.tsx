@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import vkBridge from '@vkontakte/vk-bridge';
 import { CARTOONS, TRANSLATIONS } from './data';
 import { Cartoon, GameState, Language, PlayerStats } from './types';
-import { Play, Home, RefreshCw, RotateCcw, ShoppingCart, Heart, Star, Settings, Pause, ShoppingBag, Clapperboard, Award, Shield, Zap, Tv, Film, Trophy, CheckCircle2, Info, Camera, Palette, MonitorPlay } from 'lucide-react';
+import { Play, Home, RotateCcw, ShoppingCart, Heart, Star, Settings, Clapperboard, Award, Shield, Zap, Tv, Film, Trophy, CheckCircle2, Info, Camera, Palette, MonitorPlay } from 'lucide-react';
 
 // --- Types ---
 
@@ -21,7 +21,7 @@ interface ShopItem {
 const SHOP_ITEMS: ShopItem[] = [
     { id: 'shield', icon: Shield, price: 0, name: { ru: 'Защита', en: 'Shield', tr: 'Kalkan' }, desc: { ru: '+1 жизнь на одну игру', en: '+1 life for one game', tr: 'Bir oyun için +1 can' }, type: 'powerup' },
     { id: 'boost', icon: Zap, price: 100, name: { ru: 'Буст x2', en: 'Boost x2', tr: 'Takviye x2' }, desc: { ru: 'x2 звезды на одну игру', en: 'x2 stars for one game', tr: 'Bir oyun için x2 yıldız' }, type: 'powerup' },
-    { id: 'master', icon: Award, price: 500, name: { ru: 'Знаток', en: 'Master', tr: 'Usta' }, desc: { ru: 'Золотой телевизор', en: 'Gold TV Frame', tr: 'Altın TV Чerçevesi' }, type: 'skin' },
+    { id: 'master', icon: Award, price: 500, name: { ru: 'Знаток', en: 'Master', tr: 'Usta' }, desc: { ru: 'Золотой телевизор', en: 'Gold TV Frame', tr: 'Altın TV Чerçevesи' }, type: 'skin' },
     { id: 'tv_red', icon: Tv, price: 200, name: { ru: 'Красный ТВ', en: 'Red TV', tr: 'Kırmızı TV' }, desc: { ru: 'Красный корпус', en: 'Red body', tr: 'Kırmızı göвде' }, type: 'skin' },
     { id: 'tv_silver', icon: Palette, price: 300, name: { ru: 'Серебряный ТВ', en: 'Silver TV', tr: 'Gümüş ТВ' }, desc: { ru: 'Металлический блеск', en: 'Silver body', tr: 'Gümüş göвде' }, type: 'skin' }
 ];
@@ -29,22 +29,15 @@ const SHOP_ITEMS: ShopItem[] = [
 // --- Components ---
 
 const AdBanner: React.FC = () => {
-    return (
-        <div className="vkwebbanner fixed bottom-0 left-0 right-0 h-[65px] bg-[#f0f2f5] flex items-center justify-center z-[80] border-t border-black/10 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-            <div className="w-full max-w-lg flex items-center justify-between px-4 sm:px-6">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-soviet-gold rounded-lg flex items-center justify-center border border-black/10 shadow-sm overflow-hidden">
-                        <Star size={20} fill="black" />
-                    </div>
-                    <div className="text-left">
-                        <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none mb-1">Рекламная сеть ВКонтакте</div>
-                        <div className="text-black text-xs font-bold leading-tight uppercase line-clamp-1">Играйте в лучшие игры каталога!</div>
-                    </div>
-                </div>
-                <div className="bg-[#447bba] text-white px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase shadow-sm active:opacity-80 transition-opacity">Перейти</div>
-            </div>
-        </div>
-    );
+    useEffect(() => {
+        // Вызов официального баннера VK
+        vkBridge.send('VKWebAppShowBannerAd', {
+            banner_location: 'bottom'
+        }).catch(err => console.debug('Banner Ad failed or not supported', err));
+    }, []);
+
+    // Возвращаем пустой контейнер или отступ, если VK баннер накладывается поверх
+    return <div className="h-[70px] w-full pointer-events-none" />;
 };
 
 const Toast: React.FC<{ message: string | null }> = ({ message }) => {
@@ -69,7 +62,8 @@ const Button: React.FC<{
     rounded?: boolean;
 }> = ({ children, onClick, variant = 'primary', className = '', disabled = false, fullWidth = false, rounded = false }) => {
     const baseStyle = `relative font-oswald uppercase tracking-widest font-bold py-3 px-6 transition-all transform active:translate-y-[4px] active:shadow-none flex items-center justify-center gap-3 z-10 ${rounded ? 'rounded-2xl' : 'border-2 border-black'}`;
-    const shadowStyle = disabled ? "shadow-none" : "shadow-[0_6px_0_0_rgba(0,0,0,0.15)]";
+    // Фикс "ряби": используем более стабильную тень без субпиксельных смещений
+    const shadowStyle = disabled ? "shadow-none" : "shadow-[0_4px_0_0_rgba(0,0,0,0.2)]";
     const variants = {
         primary: "bg-soviet-red text-white",
         secondary: "bg-soviet-gold text-soviet-dark",
@@ -245,7 +239,6 @@ export default function App() {
         }
         try {
             await vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'reward' });
-            // Explicitly typing the new Set to avoid 'Set<unknown>' error in some build environments
             const newPowerups = new Set<string>(activePowerups).add(itemId);
             setActivePowerups(newPowerups);
             updateStorage(stats.highScore, stats.totalStars, purchasedSkins, activeTvSkin, newPowerups);
@@ -265,11 +258,9 @@ export default function App() {
         let newPowerups = activePowerups;
 
         if (item.type === 'skin') {
-            // Explicitly typing the new Set to avoid 'Set<unknown>' error
             newSkins = new Set<string>(purchasedSkins).add(item.id);
             newSkin = item.id;
         } else {
-            // Explicitly typing the new Set to avoid 'Set<unknown>' error
             newPowerups = new Set<string>(activePowerups).add(item.id);
         }
 
@@ -305,7 +296,6 @@ export default function App() {
             available = CARTOONS;
         }
         const next = available[Math.floor(Math.random() * available.length)];
-        // Explicitly typing the new Set to avoid 'Set<unknown>' error
         const nextUsed = new Set<string>(used);
         nextUsed.add(next.id);
         setUsedQuestionIds(nextUsed);
@@ -387,7 +377,7 @@ export default function App() {
 
     if (gameState === 'menu') {
         return (
-            <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 relative overflow-hidden pb-[140px]">
+            <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 relative overflow-hidden pb-[100px]">
                 <Toast message={toast} />
                 <div className="max-w-md w-full bg-white border-[6px] border-soviet-dark rounded-[40px] shadow-menu-card relative overflow-hidden flex flex-col items-center p-8 animate-slide-up">
                     <div className="absolute top-0 inset-x-0 h-4 bg-soviet-red"></div>
@@ -430,7 +420,7 @@ export default function App() {
 
     if (gameState === 'shop') {
         return (
-            <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 font-oswald paper-texture overflow-x-hidden pb-[140px]">
+            <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 font-oswald paper-texture overflow-x-hidden pb-[100px]">
                 <Toast message={toast} />
                 <div className="max-w-md w-full bg-white border-4 border-soviet-dark p-6 rounded-[32px] shadow-hard-lg relative animate-slide-up">
                     <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-soviet-red text-soviet-cream px-8 py-2 border-2 border-black shadow-hard font-bold tracking-widest -rotate-1 text-xl rounded-full uppercase">{T.shop_title}</div>
@@ -506,7 +496,7 @@ export default function App() {
 
     if (gameState === 'gameover') {
         return (
-            <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-dark/95 font-oswald relative overflow-hidden pb-[140px]">
+            <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-soviet-dark/95 font-oswald relative overflow-hidden pb-[100px]">
                  <Toast message={toast} />
                  <div className="max-w-md w-full bg-white border-4 border-black p-6 shadow-2xl relative rotate-1 animate-slide-up rounded-[40px]">
                     <h2 className="font-ruslan text-5xl mb-6 text-center text-soviet-dark drop-shadow-md uppercase">{T.gameover}</h2>
@@ -591,9 +581,9 @@ export default function App() {
                                 </div>
                              )}
                          </div>
-                         <div className="relative transform -rotate-1 max-w-fit mx-auto scale-90">
-                             <div className="absolute inset-0 bg-black translate-x-1 translate-y-1 rounded-lg"></div>
-                             <div className="relative bg-white border-2 border-black px-6 py-2 rounded-lg">
+                         {/* Исправлен блок заголовка вопроса (удалены нестабильные повороты и div-тени, вызывавшие рябь) */}
+                         <div className="relative max-w-fit mx-auto scale-90">
+                             <div className="relative bg-white border-2 border-black px-8 py-2.5 rounded-xl shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
                                  <span className="font-bold tracking-[0.2em] text-soviet-dark text-sm block text-center uppercase whitespace-nowrap">{T.question}</span>
                              </div>
                          </div>
