@@ -31,7 +31,7 @@ const SHOP_ITEMS: ShopItem[] = [
 const AdBanner: React.FC = () => {
     useEffect(() => {
         vkBridge.send('VKWebAppShowBannerAd', {
-            banner_location: 'bottom'
+            banner_location: 'bottom' as any
         }).catch(err => console.debug('Banner Ad failed', err));
     }, []);
 
@@ -62,10 +62,7 @@ const Button: React.FC<{
     softShadow?: boolean;
 }> = ({ children, onClick, variant = 'primary', className = '', disabled = false, fullWidth = false, rounded = false, noBorder = false, softShadow = false }) => {
     const baseStyle = `relative font-oswald uppercase tracking-widest font-bold py-3.5 px-6 transition-all transform active:translate-y-[2px] flex items-center justify-center gap-3 z-10 ${rounded ? 'rounded-2xl' : 'rounded-lg'} ${noBorder ? '' : 'border-2 border-black'}`;
-    
-    // Мягкая тень для устранения "ряби" и "выпирающих" линий
     const shadowStyle = disabled ? "" : (softShadow ? "shadow-lg shadow-black/10" : "shadow-[0_4px_0_0_rgba(0,0,0,0.15)]");
-    
     const variants = {
         primary: "bg-soviet-red text-white",
         secondary: "bg-soviet-gold text-soviet-dark",
@@ -240,7 +237,7 @@ export default function App() {
              return;
         }
         try {
-            await vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'reward' });
+            await vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'reward' as any });
             const newPowerups = new Set<string>(activePowerups).add(itemId);
             setActivePowerups(newPowerups);
             updateStorage(stats.highScore, stats.totalStars, purchasedSkins, activeTvSkin, newPowerups);
@@ -344,7 +341,7 @@ export default function App() {
 
     const handleAdRevive = async () => {
         try {
-            await vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'reward' });
+            await vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'reward' as any });
             setLives(1);
             setGameState('playing');
             nextQuestion(usedQuestionIds);
@@ -490,6 +487,36 @@ export default function App() {
                         })}
                     </div>
                     <Button fullWidth variant="secondary" onClick={() => setGameState('menu')} rounded className="py-3.5"><Home size={18} /> {T.menu}</Button>
+                    
+                    {/* Модальное окно подтверждения покупки */}
+                    {purchaseModal && (
+                        <div className="fixed inset-0 bg-soviet-dark/95 z-[200] flex items-center justify-center p-4">
+                            <div className="bg-white p-6 border-4 border-black w-full max-w-xs shadow-hard-lg text-center relative rotate-1 rounded-[32px] animate-slide-up">
+                                {!purchaseModal.success ? (
+                                    <>
+                                        <h3 className="font-ruslan text-2xl mb-4 text-soviet-dark uppercase">{T.confirm_purchase}</h3>
+                                        <div className="flex items-center justify-center gap-3 mb-6 bg-soviet-cream py-3 rounded-2xl border-2 border-black/10">
+                                            <purchaseModal.item.icon size={32} className="text-soviet-red" />
+                                            <div className="text-left">
+                                                <div className="font-bold text-sm uppercase">{purchaseModal.item.name[lang]}</div>
+                                                <div className="text-lg font-bold text-soviet-red">{purchaseModal.item.price} ⭐</div>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <Button fullWidth onClick={confirmPurchase} variant="primary">{T.yes}</Button>
+                                            <Button fullWidth onClick={() => setPurchaseModal(null)} variant="secondary">{T.no}</Button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="flex justify-center mb-4 text-soviet-green"><Award size={64} /></div>
+                                        <h3 className="font-ruslan text-2xl mb-4 text-soviet-dark uppercase">{T.bought_success}</h3>
+                                        <Button fullWidth onClick={() => setPurchaseModal(null)} variant="primary">{T.close}</Button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
                 <AdBanner />
             </div>
@@ -509,11 +536,9 @@ export default function App() {
                     </div>
                     <p className="text-center mb-5 italic font-serif text-gray-600 leading-relaxed px-4 text-xs">{T.gameover_msg}</p>
                     <div className="space-y-3.5">
-                        {/* Исправлена кнопка Жизнь за рекламу: softShadow=true, rounded=true, noBorder=true */}
                         <Button fullWidth rounded variant="accent" onClick={handleAdRevive} className="py-4.5 text-base" noBorder softShadow>
                             <MonitorPlay size={22} /> {T.revive_ad}
                         </Button>
-                        {/* Исправлена кнопка Заново: softShadow=true, rounded=true, noBorder=true */}
                         <Button fullWidth rounded onClick={startGame} className="py-4.5 text-lg" noBorder softShadow>
                             <RotateCcw size={22} /> {T.revive}
                         </Button>
@@ -538,7 +563,7 @@ export default function App() {
                         <h3 className="text-xl font-bold text-soviet-dark mb-2 leading-tight uppercase tracking-tight">{lastResult.correctItem[lang].title}</h3>
                         <div className="inline-block relative px-3"><p className="text-[10px] text-gray-700 italic font-serif py-1.5 border-y border-dashed border-gray-300">"{lastResult.correctItem[lang].desc}"</p></div>
                     </div>
-                    <Button fullWidth rounded onClick={handleNextResult} className="py-3">{T.next} <Clapperboard size={18} /></Button>
+                    <Button fullWidth rounded onClick={handleNextResult} className="py-3">{T.next}</Button>
                 </div>
                 <AdBanner />
             </div>
