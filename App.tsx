@@ -35,7 +35,6 @@ const AdBanner: React.FC = () => {
         }).catch(err => console.debug('Banner Ad failed', err));
     }, []);
 
-    // Высота баннера VK на десктопе и мобилках требует резервирования места
     return <div className="h-[75px] sm:h-[90px] w-full shrink-0" />;
 };
 
@@ -62,7 +61,7 @@ const Button: React.FC<{
     noBorder?: boolean;
     softShadow?: boolean;
 }> = ({ children, onClick, variant = 'primary', className = '', disabled = false, fullWidth = false, rounded = false, noBorder = false, softShadow = false }) => {
-    const baseStyle = `relative font-oswald uppercase tracking-widest font-bold py-2 sm:py-3 px-3 sm:px-6 transition-all transform active:translate-y-[2px] flex items-center justify-center gap-2 z-10 ${rounded ? 'rounded-2xl' : 'rounded-lg'} ${noBorder ? '' : 'border-2 border-black'}`;
+    const baseStyle = `relative font-oswald uppercase tracking-widest font-bold py-2 sm:py-3.5 px-3 sm:px-6 transition-all transform active:translate-y-[2px] flex items-center justify-center gap-2 z-10 ${rounded ? 'rounded-2xl' : 'rounded-lg'} ${noBorder ? '' : 'border-2 border-black'}`;
     const shadowStyle = disabled ? "" : (softShadow ? "shadow-lg shadow-black/10" : "shadow-[0_4px_0_0_rgba(0,0,0,0.15)]");
     const variants = {
         primary: "bg-soviet-red text-white",
@@ -94,21 +93,21 @@ const TVFrame: React.FC<{ imageUrl: string; label: string; skin?: string }> = ({
     const isMetallic = skin === 'master' || skin === 'tv_silver';
     return (
         <div className="relative w-full h-full max-w-[85vw] sm:max-w-md mx-auto z-10 animate-slide-up flex flex-col justify-center min-h-0">
-            <div className={`${getSkinStyles()} p-1 sm:p-4 rounded-xl border-2 sm:border-4 shadow-hard-lg relative flex flex-col max-h-full overflow-hidden`}>
-                <div className="flex gap-1.5 sm:gap-4 items-stretch flex-1 min-h-0">
-                    <div className="flex-[4] aspect-[4/3] bg-black rounded-lg border-2 border-black relative overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,1)] min-h-0">
+            <div className={`${getSkinStyles()} p-1.5 sm:p-4 rounded-xl border-2 sm:border-4 shadow-hard-lg relative flex flex-col max-h-full overflow-hidden`}>
+                <div className="flex gap-2 sm:gap-4 items-stretch flex-1 min-h-0">
+                    <div className="flex-[5] aspect-[4/3] bg-black rounded-lg border-2 border-black relative overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,1)] min-h-0">
                         <img src={imageUrl} alt="Quiz" className="w-full h-full object-cover relative z-10 sepia-[0.1] contrast-110" />
                         <div className="absolute inset-0 z-20 pointer-events-none scanlines opacity-30"></div>
                     </div>
-                    <div className={`flex flex-col gap-1 w-5 sm:w-12 items-center justify-start ${isMetallic ? 'bg-black/20' : 'bg-[#1a110a]'} rounded p-1 border border-black/30 shrink-0`}>
-                         <div className="w-3 h-3 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
-                         <div className="w-3 h-3 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
-                         <div className="w-full flex-1 flex flex-col gap-0.5 mt-1 px-0.5 opacity-60">
-                            {[...Array(6)].map((_,i) => <div key={i} className="w-full h-px bg-black/80 rounded-full"></div>)}
+                    <div className={`flex flex-col gap-1 w-6 sm:w-12 items-center justify-start ${isMetallic ? 'bg-black/20' : 'bg-[#1a110a]'} rounded p-1 border border-black/30 shrink-0`}>
+                         <div className="w-3.5 h-3.5 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
+                         <div className="w-3.5 h-3.5 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
+                         <div className="w-full flex-1 flex flex-col gap-0.5 sm:gap-1 mt-1 px-0.5 opacity-60">
+                            {[...Array(8)].map((_,i) => <div key={i} className="w-full h-px bg-black/80 rounded-full"></div>)}
                          </div>
                     </div>
                 </div>
-                <div className={`absolute bottom-[2px] left-4 ${isMetallic ? 'bg-gray-800 text-white' : 'bg-soviet-dark text-soviet-gold'} text-[6px] sm:text-[8px] font-bold px-1.5 py-0.5 border border-black/30 tracking-tighter shadow-sm uppercase z-30`}>
+                <div className={`absolute bottom-[2px] left-4 ${isMetallic ? 'bg-gray-800 text-white' : 'bg-soviet-dark text-soviet-gold'} text-[6px] sm:text-[9px] font-bold px-1.5 py-0.5 border border-black/30 tracking-tighter shadow-sm uppercase z-30`}>
                     {label}
                 </div>
             </div>
@@ -271,7 +270,9 @@ export default function App() {
 
     const startGame = () => {
         setScore(0);
-        const bonusLives = activePowerups.has('shield') ? 1 : 0;
+        // Расчитываем жизни на основе текущих бонусов
+        const hasShield = activePowerups.has('shield');
+        const bonusLives = hasShield ? 1 : 0;
         const startingLives = 3 + bonusLives;
         setLives(startingLives);
         setMaxLives(startingLives);
@@ -282,6 +283,16 @@ export default function App() {
         setUsedQuestionIds(new Set<string>());
         setGameState('playing');
         nextQuestion(new Set<string>());
+    };
+
+    const finishGame = () => {
+        const newHighScore = Math.max(stats.highScore, score);
+        const newTotalStars = stats.totalStars + stars;
+        // Очищаем бонусы после завершения игры
+        const emptyPowerups = new Set<string>();
+        setStats({ highScore: newHighScore, totalStars: newTotalStars });
+        setActivePowerups(emptyPowerups);
+        updateStorage(newHighScore, newTotalStars, purchasedSkins, activeTvSkin, emptyPowerups);
     };
 
     const nextQuestion = (used: Set<string>) => {
@@ -321,9 +332,11 @@ export default function App() {
                     const newLevel = Math.floor(newAnswered / 3) + 1;
                     setLevel(newLevel);
                     
+                    // Бонус x2 звезды
                     const multiplier = activePowerups.has('boost') ? 2 : 1;
                     setStars(s => s + (1 * multiplier));
                     
+                    // Усложнение (если нет щита, макс. кол-во жизней падает)
                     if (!activePowerups.has('shield')) {
                         if (newLevel === 2) setMaxLives(2);
                         if (newLevel >= 3) setMaxLives(1);
@@ -349,6 +362,7 @@ export default function App() {
 
     const handleNextResult = () => {
         if (lives <= 0) {
+            finishGame();
             setGameState('gameover');
         } else {
             setGameState('playing');
@@ -359,12 +373,7 @@ export default function App() {
     const togglePause = () => setGameState(curr => curr === 'playing' ? 'paused' : 'playing');
     const goMenu = () => { 
         if (gameState === 'playing' || gameState === 'result' || gameState === 'gameover') {
-            const newHighScore = Math.max(stats.highScore, score);
-            const newTotalStars = stats.totalStars + stars;
-            const emptyPowerups = new Set<string>();
-            setStats({ highScore: newHighScore, totalStars: newTotalStars });
-            setActivePowerups(emptyPowerups);
-            updateStorage(newHighScore, newTotalStars, purchasedSkins, activeTvSkin, emptyPowerups);
+            finishGame();
         }
         setGameState('menu'); 
     };
@@ -595,27 +604,25 @@ export default function App() {
                     <button onClick={togglePause} className="bg-soviet-cream border-2 border-black p-1.5 hover:bg-white active:scale-90 shadow-hard-sm rounded-full"><Settings size={18} className="text-soviet-dark" /></button>
                 </div>
             </div>
-            {/* Оптимизированный контейнер для игры, чтобы все влезало вместе с рекламой */}
-            <div className="flex-1 flex flex-col items-center justify-center p-1 sm:p-4 w-full max-w-lg mx-auto relative z-0 overflow-hidden min-h-0">
+            {/* Оптимизированный контейнер для игры: ТВ стал крупнее на десктопе, но сохраняет сжатие при необходимости */}
+            <div className="flex-1 flex flex-col items-center justify-center p-2 sm:p-4 w-full max-w-lg mx-auto relative z-0 overflow-hidden min-h-0">
                 {currentQuestion && (
-                    <div className={`w-full flex-1 flex flex-col items-center justify-center space-y-1 sm:space-y-4 ${isWrong ? 'animate-shake' : ''} min-h-0`}>
-                         {/* ТВ-рамка с flex-1 и min-h-0 позволяет ей уменьшаться в зависимости от доступного места */}
-                         <div className="w-full flex-1 flex flex-col items-center justify-center min-h-0 overflow-hidden shrink py-1 sm:py-2">
+                    <div className={`w-full flex-1 flex flex-col items-center justify-center space-y-2 sm:space-y-4 ${isWrong ? 'animate-shake' : ''} min-h-0`}>
+                         <div className="w-full flex-[5] flex flex-col items-center justify-center min-h-0 overflow-hidden shrink py-2 sm:py-4">
                              <TVFrame imageUrl={currentQuestion.imageUrl} label={T.tv_brand} skin={activeTvSkin} />
                              {activePowerups.size > 0 && (
-                                <div className="mt-0.5 flex gap-1.5 shrink-0">
-                                    {activePowerups.has('shield') && <div className="bg-soviet-green text-white text-[7px] sm:text-[8px] px-2 py-0.5 rounded-full border border-black shadow-sm font-bold uppercase tracking-tight">Защита +1</div>}
-                                    {activePowerups.has('boost') && <div className="bg-soviet-gold text-soviet-dark text-[7px] sm:text-[8px] px-2 py-0.5 rounded-full border border-black shadow-sm font-bold uppercase tracking-tight">Звезды x2</div>}
+                                <div className="mt-1 flex gap-1.5 shrink-0">
+                                    {activePowerups.has('shield') && <div className="bg-soviet-green text-white text-[7px] sm:text-[9px] px-2 py-0.5 rounded-full border border-black shadow-sm font-bold uppercase tracking-tight">Защита +1</div>}
+                                    {activePowerups.has('boost') && <div className="bg-soviet-gold text-soviet-dark text-[7px] sm:text-[9px] px-2 py-0.5 rounded-full border border-black shadow-sm font-bold uppercase tracking-tight">Звезды x2</div>}
                                 </div>
                              )}
                          </div>
-                         {/* Эти элементы фиксированы по высоте (shrink-0) */}
-                         <div className="relative max-w-fit mx-auto scale-75 sm:scale-90 shrink-0 mb-0.5 sm:mb-2">
-                             <div className="relative bg-white px-5 sm:px-8 py-1 sm:py-2 border-2 border-black rounded-xl shadow-sm">
-                                 <span className="font-bold tracking-[0.2em] text-soviet-dark text-[9px] sm:text-xs block text-center uppercase whitespace-nowrap">{T.question}</span>
+                         <div className="relative max-w-fit mx-auto scale-75 sm:scale-100 shrink-0 mb-1 sm:mb-2">
+                             <div className="relative bg-white px-5 sm:px-10 py-1.5 sm:py-2.5 border-2 border-black rounded-xl shadow-sm">
+                                 <span className="font-bold tracking-[0.2em] text-soviet-dark text-[10px] sm:text-sm block text-center uppercase whitespace-nowrap">{T.question}</span>
                              </div>
                          </div>
-                         <div className="grid grid-cols-2 gap-1 sm:gap-3 w-full shrink-0 pb-1 sm:pb-4">
+                         <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full shrink-0 pb-1 sm:pb-6">
                              {options.map((opt, idx) => {
                                  const isSelected = selectedId === opt.id;
                                  const isCorrect = opt.id === currentQuestion.id;
@@ -624,10 +631,10 @@ export default function App() {
                                  return (
                                      <Button 
                                         key={opt.id} rounded variant={variant} disabled={!!selectedId}
-                                        className={`min-h-[40px] sm:min-h-[64px] text-[7px] sm:text-xs leading-tight normal-case text-left pl-3 sm:pl-5 flex justify-start items-center border-2 ${!selectedId ? 'hover:scale-[1.01]' : ''}`}
+                                        className={`min-h-[48px] sm:min-h-[72px] text-[8px] sm:text-sm leading-tight normal-case text-left pl-3 sm:pl-6 flex justify-start items-center border-2 ${!selectedId ? 'hover:scale-[1.02]' : ''}`}
                                         onClick={() => handleAnswer(opt)}
                                      >
-                                         <span className={`font-bold mr-1 sm:mr-2 text-sm sm:text-lg font-ruslan ${isSelected ? 'text-white' : 'text-soviet-red opacity-70'}`}>{idx + 1}.</span>
+                                         <span className={`font-bold mr-1.5 sm:mr-3 text-sm sm:text-xl font-ruslan ${isSelected ? 'text-white' : 'text-soviet-red opacity-70'}`}>{idx + 1}.</span>
                                          <span className="font-oswald font-bold uppercase tracking-tight line-clamp-2 overflow-hidden">{opt[lang].title}</span>
                                      </Button>
                                  );
