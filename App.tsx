@@ -35,7 +35,8 @@ const AdBanner: React.FC = () => {
         }).catch(err => console.debug('Banner Ad failed', err));
     }, []);
 
-    return <div className="h-[75px] w-full shrink-0" />;
+    // Уменьшаем высоту отступа, чтобы оставить больше места контенту на десктопе
+    return <div className="h-[60px] sm:h-[70px] w-full shrink-0" />;
 };
 
 const Toast: React.FC<{ message: string | null }> = ({ message }) => {
@@ -61,7 +62,7 @@ const Button: React.FC<{
     noBorder?: boolean;
     softShadow?: boolean;
 }> = ({ children, onClick, variant = 'primary', className = '', disabled = false, fullWidth = false, rounded = false, noBorder = false, softShadow = false }) => {
-    const baseStyle = `relative font-oswald uppercase tracking-widest font-bold py-3.5 px-6 transition-all transform active:translate-y-[2px] flex items-center justify-center gap-3 z-10 ${rounded ? 'rounded-2xl' : 'rounded-lg'} ${noBorder ? '' : 'border-2 border-black'}`;
+    const baseStyle = `relative font-oswald uppercase tracking-widest font-bold py-2.5 sm:py-3.5 px-4 sm:px-6 transition-all transform active:translate-y-[2px] flex items-center justify-center gap-3 z-10 ${rounded ? 'rounded-2xl' : 'rounded-lg'} ${noBorder ? '' : 'border-2 border-black'}`;
     const shadowStyle = disabled ? "" : (softShadow ? "shadow-lg shadow-black/10" : "shadow-[0_4px_0_0_rgba(0,0,0,0.15)]");
     const variants = {
         primary: "bg-soviet-red text-white",
@@ -92,26 +93,26 @@ const TVFrame: React.FC<{ imageUrl: string; label: string; skin?: string }> = ({
     };
     const isMetallic = skin === 'master' || skin === 'tv_silver';
     return (
-        <div className="relative w-full max-w-[85vw] sm:max-w-md mx-auto z-10 animate-slide-up shrink-0">
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-32 h-10 pointer-events-none opacity-40">
-                <div className="absolute bottom-0 left-4 w-0.5 h-8 bg-gray-600 rotate-[-25deg] origin-bottom"></div>
-                <div className="absolute bottom-0 right-4 w-0.5 h-8 bg-gray-600 rotate-[25deg] origin-bottom"></div>
+        <div className="relative w-full max-w-[80vw] sm:max-w-md mx-auto z-10 animate-slide-up shrink grow-0 overflow-hidden">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-8 pointer-events-none opacity-40">
+                <div className="absolute bottom-0 left-3 w-0.5 h-6 bg-gray-600 rotate-[-25deg] origin-bottom"></div>
+                <div className="absolute bottom-0 right-3 w-0.5 h-6 bg-gray-600 rotate-[25deg] origin-bottom"></div>
             </div>
-            <div className={`${getSkinStyles()} p-2 sm:p-4 rounded-xl border-4 shadow-hard-lg relative`}>
-                <div className="flex gap-2 sm:gap-4 items-stretch">
+            <div className={`${getSkinStyles()} p-1.5 sm:p-4 rounded-xl border-2 sm:border-4 shadow-hard-lg relative`}>
+                <div className="flex gap-1.5 sm:gap-4 items-stretch">
                     <div className="flex-1 aspect-[4/3] bg-black rounded-lg border-2 border-black relative overflow-hidden shadow-[inset_0_0_20px_rgba(0,0,0,1)]">
                         <img src={imageUrl} alt="Quiz" className="w-full h-full object-cover relative z-10 sepia-[0.1] contrast-110" />
                         <div className="absolute inset-0 z-20 pointer-events-none scanlines opacity-30"></div>
                     </div>
-                    <div className={`flex flex-col gap-1 w-6 sm:w-12 items-center justify-start ${isMetallic ? 'bg-black/20' : 'bg-[#1a110a]'} rounded p-1 border border-black/30`}>
-                         <div className="w-4 h-4 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
-                         <div className="w-4 h-4 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
-                         <div className="w-full flex-1 flex flex-col gap-1 mt-1 px-0.5 opacity-60">
-                            {[...Array(6)].map((_,i) => <div key={i} className="w-full h-0.5 bg-black/80 rounded-full"></div>)}
+                    <div className={`flex flex-col gap-0.5 sm:gap-1 w-5 sm:w-12 items-center justify-start ${isMetallic ? 'bg-black/20' : 'bg-[#1a110a]'} rounded p-0.5 sm:p-1 border border-black/30`}>
+                         <div className="w-3 h-3 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
+                         <div className="w-3 h-3 sm:w-7 sm:h-7 rounded-full bg-[#444] border border-black shadow-hard-sm"></div>
+                         <div className="w-full flex-1 flex flex-col gap-0.5 mt-0.5 sm:mt-1 px-0.5 opacity-60">
+                            {[...Array(6)].map((_,i) => <div key={i} className="w-full h-px sm:h-0.5 bg-black/80 rounded-full"></div>)}
                          </div>
                     </div>
                 </div>
-                <div className={`absolute bottom-[-8px] left-6 ${isMetallic ? 'bg-gray-800 text-white' : 'bg-soviet-dark text-soviet-gold'} text-[8px] font-bold px-1.5 py-0.5 border border-black/30 tracking-tighter shadow-sm uppercase`}>
+                <div className={`absolute bottom-[-6px] left-4 ${isMetallic ? 'bg-gray-800 text-white' : 'bg-soviet-dark text-soviet-gold'} text-[6px] sm:text-[8px] font-bold px-1.5 py-0.5 border border-black/30 tracking-tighter shadow-sm uppercase`}>
                     {label}
                 </div>
             </div>
@@ -598,24 +599,25 @@ export default function App() {
                     <button onClick={togglePause} className="bg-soviet-cream border-2 border-black p-1.5 hover:bg-white active:scale-90 shadow-hard-sm rounded-full"><Settings size={18} className="text-soviet-dark" /></button>
                 </div>
             </div>
-            <div className="flex-1 flex flex-col items-center justify-center p-3 w-full max-w-lg mx-auto relative z-0 overflow-hidden">
+            {/* Основной контейнер с игрой оптимизирован для вертикального пространства */}
+            <div className="flex-1 flex flex-col items-center justify-start sm:justify-center p-2 sm:p-3 w-full max-w-lg mx-auto relative z-0 overflow-hidden">
                 {currentQuestion && (
-                    <div className={`w-full flex flex-col items-center space-y-4 sm:space-y-6 ${isWrong ? 'animate-shake' : ''}`}>
-                         <div className="w-full flex flex-col items-center shrink-0">
+                    <div className={`w-full flex flex-col items-center space-y-2 sm:space-y-4 ${isWrong ? 'animate-shake' : ''} max-h-full`}>
+                         <div className="w-full flex flex-col items-center shrink min-h-0">
                              <TVFrame imageUrl={currentQuestion.imageUrl} label={T.tv_brand} skin={activeTvSkin} />
                              {activePowerups.size > 0 && (
-                                <div className="mt-2 flex gap-1.5">
-                                    {activePowerups.has('shield') && <div className="bg-soviet-green text-white text-[8px] px-2 py-0.5 rounded-full border border-black shadow-sm font-bold uppercase tracking-tight">Защита +1</div>}
-                                    {activePowerups.has('boost') && <div className="bg-soviet-gold text-soviet-dark text-[8px] px-2 py-0.5 rounded-full border border-black shadow-sm font-bold uppercase tracking-tight">Звезды x2</div>}
+                                <div className="mt-1 flex gap-1.5">
+                                    {activePowerups.has('shield') && <div className="bg-soviet-green text-white text-[7px] sm:text-[8px] px-2 py-0.5 rounded-full border border-black shadow-sm font-bold uppercase tracking-tight">Защита +1</div>}
+                                    {activePowerups.has('boost') && <div className="bg-soviet-gold text-soviet-dark text-[7px] sm:text-[8px] px-2 py-0.5 rounded-full border border-black shadow-sm font-bold uppercase tracking-tight">Звезды x2</div>}
                                 </div>
                              )}
                          </div>
-                         <div className="relative max-w-fit mx-auto scale-90 shrink-0">
-                             <div className="relative bg-white px-8 py-2 border-2 border-black rounded-xl shadow-sm">
-                                 <span className="font-bold tracking-[0.2em] text-soviet-dark text-xs block text-center uppercase whitespace-nowrap">{T.question}</span>
+                         <div className="relative max-w-fit mx-auto scale-75 sm:scale-90 shrink-0">
+                             <div className="relative bg-white px-6 sm:px-8 py-1.5 sm:py-2 border-2 border-black rounded-xl shadow-sm">
+                                 <span className="font-bold tracking-[0.2em] text-soviet-dark text-[10px] sm:text-xs block text-center uppercase whitespace-nowrap">{T.question}</span>
                              </div>
                          </div>
-                         <div className="grid grid-cols-2 gap-2 sm:gap-3.5 w-full pb-4 shrink-0">
+                         <div className="grid grid-cols-2 gap-1.5 sm:gap-3.5 w-full pb-2 shrink-0">
                              {options.map((opt, idx) => {
                                  const isSelected = selectedId === opt.id;
                                  const isCorrect = opt.id === currentQuestion.id;
@@ -624,11 +626,11 @@ export default function App() {
                                  return (
                                      <Button 
                                         key={opt.id} rounded variant={variant} disabled={!!selectedId}
-                                        className={`min-h-[55px] sm:min-h-[68px] text-[9px] sm:text-xs leading-tight normal-case text-left pl-3 sm:pl-5 flex justify-start items-center border-2 ${!selectedId ? 'hover:scale-[1.01]' : ''}`}
+                                        className={`min-h-[48px] sm:min-h-[68px] text-[8px] sm:text-xs leading-tight normal-case text-left pl-3 sm:pl-5 flex justify-start items-center border-2 ${!selectedId ? 'hover:scale-[1.01]' : ''}`}
                                         onClick={() => handleAnswer(opt)}
                                      >
-                                         <span className={`font-bold mr-1.5 sm:mr-2 text-base sm:text-lg font-ruslan ${isSelected ? 'text-white' : 'text-soviet-red opacity-70'}`}>{idx + 1}.</span>
-                                         <span className="font-oswald font-bold uppercase tracking-tight line-clamp-2">{opt[lang].title}</span>
+                                         <span className={`font-bold mr-1 sm:mr-2 text-sm sm:text-lg font-ruslan ${isSelected ? 'text-white' : 'text-soviet-red opacity-70'}`}>{idx + 1}.</span>
+                                         <span className="font-oswald font-bold uppercase tracking-tight line-clamp-2 overflow-hidden">{opt[lang].title}</span>
                                      </Button>
                                  );
                              })}
